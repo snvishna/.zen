@@ -52,6 +52,8 @@ brew "fzf"
 brew "starship"
 # GitHub command-line tool
 brew "gh"
+# Syntax-highlighting pager for git and diff output
+brew "git-delta"
 vscode "catppuccin.catppuccin-vsc"
 vscode "eamodio.gitlens"
 vscode "github.copilot"
