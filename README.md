@@ -249,4 +249,3 @@ This repo manages the *files*, but **dfsync** manages the *syncing* of those fil
 ## 📜 License
 
 MIT
-
