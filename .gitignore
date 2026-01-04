@@ -12,3 +12,4 @@ config/zim/modules/
 config/zim/init.zsh*
 config/zim/login_init.zsh*
 launchd/*.plist
+.gitconfig.local

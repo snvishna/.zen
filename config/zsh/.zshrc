@@ -95,6 +95,9 @@ alias gl="git log --oneline --graph --decorate"
 alias backup="zen-save"
 alias install-stack="zen-load"
 
+# Delta Side-by-Side (Light Mode)
+alias diff="delta --side-by-side --light"
+
 # 6. ZEN DASHBOARD (DEEP STATS EDITION)
 # ------------------------------------------------------------------------------
 function zstats() {

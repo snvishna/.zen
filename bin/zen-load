@@ -34,6 +34,7 @@ SYMLINKS=(
     "config/finder/Recents.savedSearch|${HOME}/Library/Saved Searches/Recents.savedSearch"
     "bin/zen-save|${BIN_DEST}/zen-save"
     "bin/zen-load|${BIN_DEST}/zen-load"
+    "config/git/gitconfig|${HOME}/.gitconfig"
 )
 
 # --- Colors ---
