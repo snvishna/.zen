@@ -50,6 +50,8 @@ brew "tree"
 brew "fzf"
 # Cross-shell prompt for astronauts
 brew "starship"
+# GitHub command-line tool
+brew "gh"
 vscode "catppuccin.catppuccin-vsc"
 vscode "eamodio.gitlens"
 vscode "github.copilot"
