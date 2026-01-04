@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSNavPanelExpandedSizeForOpenMode</key>
+	<string>{880, 448}</string>
+	<key>NSNavPanelExpandedSizeForSaveMode</key>
+	<string>{880, 448}</string>
+	<key>NSNavPanelExpandedStateForSaveMode</key>
+	<true/>
+	<key>NSOSPLastRootDirectory</key>
+	<data>
+	Ym9va/wCAAAAAAUQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+	AAAAAAAAAAAAAAAAAMQBAAAEAAAAAwMAAAAEAAAFAAAAAQEAAFVzZXJzAAAABwAAAAEB
+	AABzaGFua2FyAAkAAAABAQAARG9jdW1lbnRzAAAADAAAAAEGAAAQAAAAIAAAADAAAAAI
+	AAAABAMAAB1CAAAAAAAACAAAAAQDAADrJAQAAAAAAAgAAAAEAwAAHCUEAAAAAAAMAAAA
+	AQYAAFgAAABoAAAAeAAAAAgAAAAABAAAQcZjyZC93S4YAAAAAQIAAAIAAAAAAAAAHwIA
+	AAAAAAAfAgAAAAAAAAAAAAABBQAACAAAAAQDAAABAAAAAAAAAAQAAAADAwAA9QEAAAgA
+	AAABCQAAZmlsZTovLy8MAAAAAQEAAE1hY2ludG9zaCBIRAgAAAAEAwAAAFChG3MAAAAI
+	AAAAAAQAAEHHaPt0AAAAJAAAAAEBAAA2QkM0RjA1RC0xODA4LTQwQjgtQTI2Ni0xREE4
+	OTExQjNENzUYAAAAAQIAAIEAAAABAAAA7xMAAAEAAADvEwAAAQAAAAEAAAABAQAALwAA
+	ADAAAAABAgAAZG5pYgAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAc2NvZAIA
+	AAAAAAAA8AAAAP7///8BAAAAAAAAABMAAAAEEAAARAAAAAAAAAAFEAAAiAAAAAAAAAAQ
+	EAAArAAAAAAAAABAEAAAnAAAAAAAAAACIAAAgAEAAAAAAAAFIAAA8AAAAAAAAAAQIAAA
+	AAEAAAAAAAARIAAANAEAAAAAAAASIAAAFAEAAAAAAAATIAAAJAEAAAAAAAAgIAAAYAEA
+	AAAAAAAwIAAAzAAAAAAAAAABwAAA1AAAAAAAAAARwAAAIAAAAAAAAAASwAAA5AAAAAAA
+	AAAB0AAAzAAAAAAAAAAQ0AAABAAAAAAAAAAX8AAAMAAAAAAAAAAi8AAAjAEAAAAAAAA=
+	</data>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUHasLaunchedBefore</key>
+	<true/>
+	<key>SULastCheckTime</key>
+	<date>2026-01-01T06:24:24Z</date>
+	<key>SUUpdateGroupIdentifier</key>
+	<integer>4053346289</integer>
+	<key>allowAnyShortcut</key>
+	<true/>
+	<key>alternateDefaultShortcuts</key>
+	<true/>
+	<key>doubleClickTitleBar</key>
+	<integer>3</integer>
+	<key>hideMenubarIcon</key>
+	<false/>
+	<key>installVersion</key>
+	<string>98</string>
+	<key>internalTilingNotified</key>
+	<true/>
+	<key>lastVersion</key>
+	<string>98</string>
+	<key>launchOnLogin</key>
+	<true/>
+	<key>reflowTodo</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>45</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+	<key>subsequentExecutionMode</key>
+	<integer>1</integer>
+	<key>toggleTodo</key>
+	<dict>
+		<key>keyCode</key>
+		<integer>11</integer>
+		<key>modifierFlags</key>
+		<integer>786432</integer>
+	</dict>
+</dict>
+</plist>

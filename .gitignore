@@ -1,0 +1,13 @@
+.DS_Store
+*.log
+*.tmp
+# Ignore the actual dfsync binary if it accidentally gets copied here
+bin/dfsync
+manifests/macos/all_settings_bak.txt
+*.bak
+dfsync.json
+config/finder/Recents.savedSearch
+# ZimFW
+config/zim/modules/
+config/zim/init.zsh
+config/zim/login_init.zsh

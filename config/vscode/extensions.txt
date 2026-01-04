@@ -1,0 +1,7 @@
+catppuccin.catppuccin-vsc
+eamodio.gitlens
+github.copilot
+github.copilot-chat
+ms-azuretools.vscode-containers
+ms-azuretools.vscode-docker
+vscode-icons-team.vscode-icons

@@ -1,0 +1,46 @@
+{
+    // --- 1. VISUALS (Your Base) ---
+    "workbench.iconTheme": "vscode-icons",
+    "workbench.colorTheme": "Catppuccin Frappé",
+    "editor.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace",
+    "editor.fontLigatures": true,
+    "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
+    // --- 2. AUTOMATION & SAVING ---
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 250,
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit"
+    },
+    "workbench.settings.applyToAllProfiles": [
+        "files.autoSave"
+    ],
+    // --- 3. EDITOR EXPERIENCE (The "Feel") ---
+    "editor.cursorBlinking": "smooth",
+    "editor.cursorSmoothCaretAnimation": "on",
+    "editor.minimap.enabled": false, // Reclaim screen space
+    "editor.renderWhitespace": "selection", // Clean look, info on demand
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.smoothScrolling": true,
+    "editor.stickyScroll.enabled": true, // Shows current function context at top
+    // --- 4. EXPLORER HYGIENE ---
+    "explorer.fileNesting.enabled": true, // Collapses package-lock under package.json, etc.
+    "explorer.compactFolders": false, // Easier to read hierarchy
+    "files.exclude": {
+        "**/.git": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/node_modules": false // Keep visible but grayed out via .gitignore usually
+    },
+    // --- 5. TERMINAL & GIT ---
+    "terminal.integrated.defaultProfile.osx": "zsh",
+    "terminal.integrated.cursorBlinking": true,
+    "git.autofetch": true,
+    "git.confirmSync": false, // Don't ask to confirm push/pull
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.accessibilitySupport": "off",
+    "explorer.confirmDelete": false,
+    "security.workspace.trust.untrustedFiles": "open",
+    "explorer.confirmDragAndDrop": false
+}
