@@ -23,8 +23,8 @@ echo "   -> Network Service Order updated."
 echo "⌨️  Applying 'Ludicrous Speed' Keyboard settings..."
 
 # KEYBOARD SPEED (Undocumented Limits)
-defaults write NSGlobalDomain InitialKeyRepeat -int 15
-defaults write NSGlobalDomain KeyRepeat -int 4
+defaults write NSGlobalDomain InitialKeyRepeat -int 25
+defaults write NSGlobalDomain KeyRepeat -int 2
 
 # CRITICAL: Disable "Press and Hold" for accents so keys repeat immediately
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
