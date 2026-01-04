@@ -1,0 +1,59 @@
+# Enable Windows-like alt-tab
+cask "alt-tab"
+# Transfer files from and to an Android smartphone
+cask "android-file-transfer"
+# Android SDK component
+cask "android-platform-tools"
+# Web browser
+cask "firefox@developer-edition"
+# No description
+cask "font-anonymice-nerd-font"
+# No description
+cask "font-anonymous-pro"
+# No description
+cask "font-jetbrains-mono-nerd-font"
+# Menu bar manager
+cask "jordanbaird-ice"
+# Open-source keystroke visualiser
+cask "keycastr"
+# Agent-centric IDE with spec-driven development
+cask "kiro"
+# AI-powered productivity tool for the command-line
+cask "kiro-cli"
+# Menu bar utility for toggling dark mode
+cask "nightfall"
+# Control your tools with a few keystrokes
+cask "raycast"
+# Move and resize windows using keyboard shortcuts or snap areas
+cask "rectangle"
+# System monitor for the menu bar
+cask "stats"
+# Open-source code editor
+cask "visual-studio-code"
+# GPU-accelerated cross-platform terminal emulator and multiplexer
+cask "wezterm"
+# Lightweight and flexible command-line JSON processor
+brew "jq"
+# UNIX shell (command interpreter)
+brew "zsh"
+# Clone of ls with colorful output, file type icons, and more
+brew "lsd"
+# Ambitious Vim-fork focused on extensibility and agility
+brew "neovim"
+# Manage multiple Node.js versions
+brew "nvm"
+# Search tool like grep and The Silver Searcher
+brew "ripgrep"
+# Display directories as trees (with optional color/HTML output)
+brew "tree"
+# Command-line fuzzy finder written in Go
+brew "fzf"
+# Cross-shell prompt for astronauts
+brew "starship"
+vscode "catppuccin.catppuccin-vsc"
+vscode "eamodio.gitlens"
+vscode "github.copilot"
+vscode "github.copilot-chat"
+vscode "ms-azuretools.vscode-containers"
+vscode "ms-azuretools.vscode-docker"
+vscode "vscode-icons-team.vscode-icons"

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>KeyboardShortcuts_delete</key>
+	<string>{"carbonModifiers":2048,"carbonKeyCode":51}</string>
+	<key>KeyboardShortcuts_pin</key>
+	<string>{"carbonModifiers":2048,"carbonKeyCode":35}</string>
+	<key>KeyboardShortcuts_popup</key>
+	<string>{"carbonModifiers":768,"carbonKeyCode":9}</string>
+	<key>NSStatusItem VisibleCC Item-1</key>
+	<false/>
+	<key>NSWindow Frame com.sindresorhus.Settings.FrameAutosaveName</key>
+	<string>501 298 510 489 0 0 1512 949 </string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUHasLaunchedBefore</key>
+	<true/>
+	<key>SULastCheckTime</key>
+	<date>2026-01-02T09:21:42Z</date>
+	<key>SUUpdateGroupIdentifier</key>
+	<integer>1153317768</integer>
+	<key>enabledPasteboardTypes</key>
+	<array>
+		<string>public.file-url</string>
+		<string>public.rtf</string>
+		<string>public.html</string>
+		<string>public.utf8-plain-text</string>
+		<string>public.png</string>
+		<string>public.tiff</string>
+	</array>
+	<key>fuzzySearch</key>
+	<true/>
+	<key>historySize</key>
+	<integer>99999</integer>
+	<key>launchAtLogin</key>
+	<true/>
+	<key>migrations</key>
+	<dict>
+		<key>2024-07-01-version-2</key>
+		<true/>
+	</dict>
+	<key>pasteByDefault</key>
+	<true/>
+	<key>playSounds</key>
+	<false/>
+	<key>searchMode</key>
+	<string>fuzzy</string>
+	<key>showApplicationIcons</key>
+	<true/>
+	<key>showFooter</key>
+	<true/>
+	<key>showMenuIcon</key>
+	<true/>
+	<key>showSearch</key>
+	<true/>
+	<key>showTitle</key>
+	<true/>
+	<key>windowSize</key>
+	<string>[450,800]</string>
+</dict>
+</plist>
