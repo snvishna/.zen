@@ -85,7 +85,7 @@ It integrates seamlessly with **[dfsync](https://github.com/snvishna/dotfilesync
 
     ```bash
 
-    git clone https://github.com/YOUR_USERNAME/.zen.git ~/.zen
+    git clone https://github.com/snvishna/.zen.git ~/.zen
 
     ```
 
