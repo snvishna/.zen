@@ -14,6 +14,13 @@ Your configurations now live in `~/.zen/stow/`. Each subdirectory is a "package"
 - **Scripts**: Rewrote `zen-load` and `zen-save` to rely on `stow` instead of custom loop logic.
 - **Binaries**: `zen-load` and `zen-save` are now symlinked from `stow/bin` into `~/.local/bin`.
 - **Zim**: Deleted committed modules (`config/zim/modules`). `zimfw` will now cleanly reinstall them on next shell startup or `zen-load` run.
+- **WezTerm**:
+    - **Start**: `default_cwd` set to HOME.
+    - **New Tab**: Opens in *current* directory (`CurrentPaneDomain`).
+    - **Colors**: Standard `Catppuccin Mocha` palette (No text overrides).
+- **Aliases**:
+    - `la` = `eza -lah ...` (Restored).
+    - `l` = `ll` (Retained).
 - **Fonts**: Added logic to `zen-load` to auto-copy Nerd Fonts to `~/Library/Fonts` if missing (fixing WezTerm).
 - **Zsh**: Integrated "Zen" aliases and `ha` (Help Alias) function interactively searchable via `fzf`. Added power tools `zoxide`, `eza`, `bat`, `fd`, `trash`.
 
@@ -71,7 +78,19 @@ WezTerm and Zsh now work together to provide a GUI-like editing experience on th
 - **Visuals**:
     - **Glass**: 90% Opacity + Background Blur.
     - **Focus**: Inactive panes are dimmed.
+    - **Glass**: 90% Opacity + Background Blur.
+    - **Focus**: Inactive panes are dimmed.
     - **Tabs**: Moved to bottom for a cleaner header.
+
+### 8. Shell Intelligence & Metrics
+- **Autosuggestions**: Grey text suggests commands as you type. (Right Arrow to accept).
+- **Prompt Metrics**:
+    - **Time**: Shows when a command finished (e.g., `at 14:30`).
+    - **Duration**: Shows how long it took (e.g., `took 2s`).
+- **Stats**:
+    - **Counts**: `📂 12 items | 🚀 450 deep`.
+    - **Tech**: Root uses `ls` (Instant), Deep uses `fd` (Fast recursive).
+    - **Smart**: Excludes `node_modules`, `.git`, `.venv`, `target`, etc.
 
 ### Verify Connectivity
 To check if Stow is happy:

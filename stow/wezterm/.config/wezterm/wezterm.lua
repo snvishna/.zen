@@ -6,11 +6,9 @@ local action = wezterm.action
 -- 2. VISUALS (Zen Glass Theme)
 -- =========================================================
 config.color_scheme = 'Catppuccin Mocha'
--- Override the text color to Neon Green
-config.colors = {
-  foreground = '#a6e3a1', -- Catppuccin Green (Softer, fits the theme better)
-  split = "#89b4fa",
-}
+-- config.colors override removed to use standard palette
+
+config.default_cwd = wezterm.home_dir
 
 config.font = wezterm.font_with_fallback {
   'JetBrains Mono',
