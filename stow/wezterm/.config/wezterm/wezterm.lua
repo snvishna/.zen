@@ -96,9 +96,18 @@ config.mouse_bindings = {
 -- 5. KEYBINDINGS (The "Editor" Feel)
 -- =========================================================
 config.keys = {
-  -- --- CLIPBOARD (Native Mac Behavior) ---
-  { key = 'c', mods = 'CMD', action = action.CopyTo 'Clipboard' },
-  { key = 'v', mods = 'CMD', action = action.PasteFrom 'Clipboard' },
+  -- --- CLIPBOARD (Smart Integration) ---
+  -- --- CLIPBOARD (Smart Integration) ---
+  -- Cmd+C = Send \x1bc (Esc+c) -> Zsh captures this to copy selection
+  { key = 'c', mods = 'CMD', action = action.SendString '\x1bc' },
+  -- Cmd+X = Send \x1bx (Esc+x) -> Zsh captures this to cut selection
+  { key = 'x', mods = 'CMD', action = action.SendString '\x1bx' },
+  -- Cmd+V = Send \x1bv (Esc+v) -> Zsh captures this to Smart Paste
+  { key = 'v', mods = 'CMD', action = action.SendString '\x1bv' },
+  -- Cmd+Shift+V = Force Native Paste (for Vim/Nano/Remote)
+  { key = 'v', mods = 'CMD|SHIFT', action = action.PasteFrom 'Clipboard' },
+  -- Cmd+Shift+C = Force Native Copy (for mouse selections/non-Zsh apps)
+  { key = 'c', mods = 'CMD|SHIFT', action = action.CopyTo 'Clipboard' },
   
   -- --- SEARCH ---
   { key = 'f', mods = 'CMD', action = action.Search 'CurrentSelectionOrEmptyString' },
@@ -148,6 +157,29 @@ config.keys = {
   { key = 'RightArrow', mods = 'OPT', action = action.SendKey { key = 'f', mods = 'ALT' } },
   -- Cmd+Backspace = Delete Line (sends Ctrl-U)
   { key = 'Backspace', mods = 'CMD', action = action.SendString '\x15' },
+  
+  -- --- EDITOR EXPERIENCE (Undo/Redo & Selection) ---
+  -- Undo: Cmd+Z -> Ctrl+_ (\x1f)
+  { key = 'z', mods = 'CMD', action = action.SendString '\x1f' },
+  -- Redo: Cmd+Shift+Z -> Ctrl+Y (\x19) (We will map this in Zsh)
+  { key = 'z', mods = 'CMD|SHIFT', action = action.SendString '\x19' },
+
+  -- Text Selection (Shift+Arrow) -> Send standard xterm codes
+  { key = 'LeftArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2D' },
+  { key = 'RightArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2C' },
+  { key = 'UpArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2A' },
+  { key = 'DownArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2B' },
+  
+  -- Select Line Start/End (Cmd+Shift+Arrow) -> Send custom codes
+  { key = 'LeftArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9D' },
+  { key = 'RightArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9C' },
+
+  -- Multi-line Entry (Shift+Enter) -> Send Esc+Enter
+  { key = 'Enter', mods = 'SHIFT', action = action.SendString '\x1b\r' },
+
+  -- Word Selection (Shift+Option+Arrow) -> Send custom codes
+  { key = 'LeftArrow', mods = 'SHIFT|OPT', action = action.SendString '\x1b[1;10D' },
+  { key = 'RightArrow', mods = 'SHIFT|OPT', action = action.SendString '\x1b[1;10C' },
 }
 
 -- =========================================================

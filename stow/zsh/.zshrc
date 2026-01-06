@@ -208,7 +208,149 @@ alias h="history 0 | fzf" # Hist: FZF History Search
 alias backup="zen-save" # Zen: Run backups
 alias install-stack="zen-load" # Zen: Rehydrate system
 
-# 10. LAUNCH
+# 10. EDITOR EXPERIENCE (Keybindings)
+# ------------------------------------------------------------------------------
+# Enable standard Emacs mode (default)
+bindkey -e
+
+# --- Undo / Redo ---
+bindkey '^_' undo          # Ctrl+_ (Standard Undo)
+bindkey '^y' redo          # Ctrl+y (Mapped to Cmd+Shift+Z in WezTerm)
+
+# --- Visual Selection (Shift+Arrows) ---
+# WezTerm sends xterm codes for Shift+Arrow. We bind them to selection widgets.
+# 1. Define custom widgets for selection
+function r-delregion() {
+  if ((REGION_ACTIVE)) then
+     zle kill-region
+  else 
+     local widget_name=$1
+     shift
+     zle $widget_name -- $@
+  fi
+}
+
+function z-visual-mode-backward-char() {
+  ((REGION_ACTIVE)) || zle set-mark-command
+  zle backward-char
+}
+function z-visual-mode-forward-char() {
+  ((REGION_ACTIVE)) || zle set-mark-command
+  zle forward-char
+}
+function z-visual-line-beginning() {
+  ((REGION_ACTIVE)) || zle set-mark-command
+  zle beginning-of-line
+}
+function z-visual-line-end() {
+  ((REGION_ACTIVE)) || zle set-mark-command
+  zle end-of-line
+}
+
+# 2. Register widgets
+zle -N z-visual-mode-backward-char
+zle -N z-visual-mode-forward-char
+zle -N z-visual-line-beginning
+zle -N z-visual-line-end
+
+# 3. Bind Keys (Codes match WezTerm config)
+bindkey '^[[1;2D' z-visual-mode-backward-char   # Shift+Left
+bindkey '^[[1;2C' z-visual-mode-forward-char    # Shift+Right
+bindkey '^[[1;9D' z-visual-line-beginning       # Cmd+Shift+Left
+bindkey '^[[1;9C' z-visual-line-end             # Cmd+Shift+Right
+
+# 4. Handle Backspace on Selection
+# If text is selected, backspace should delete the selection, not just the char
+function z-delete-selection() {
+  if ((REGION_ACTIVE)); then
+      zle kill-region
+  else 
+      zle backward-delete-char
+  fi
+}
+zle -N z-delete-selection
+bindkey '^?' z-delete-selection
+
+# 5. Clipboard Integration (Cmd+C / Cmd+X)
+# WezTerm sends Esc-c / Esc-x
+function z-copy-region() {
+    if ((REGION_ACTIVE)); then
+        zle copy-region-as-kill
+        print -rn -- $CUTBUFFER | pbcopy
+        zle deactivate-region
+    fi
+}
+
+function z-cut-region() {
+    if ((REGION_ACTIVE)); then
+        zle kill-region
+        print -rn -- $CUTBUFFER | pbcopy
+    fi
+}
+
+# 6. Type-to-Replace (The "Editor" Feel)
+# If text is selected, typing any key should replace it.
+function z-smart-insert() {
+  if ((REGION_ACTIVE)); then
+      zle kill-region
+  fi
+  zle .self-insert
+}
+zle -N self-insert z-smart-insert 
+
+zle -N z-copy-region
+zle -N z-cut-region
+
+bindkey '^[c' z-copy-region # Esc-c (Cmd+C)
+bindkey '^[x' z-cut-region  # Esc-x (Cmd+X)
+
+# 6. Smart Paste (Cmd+V) - Esc+v
+function z-smart-paste() {
+    if ((REGION_ACTIVE)); then
+        zle kill-region
+    fi
+    # Paste from macOS clipboard
+    LBUFFER+="$(pbpaste)"
+}
+zle -N z-smart-paste
+bindkey '^[v' z-smart-paste
+
+# 7. Multi-line Entry (Shift+Enter) - Esc+Enter
+function z-smart-newline() {
+    LBUFFER+=$'\n'
+}
+zle -N z-smart-newline
+bindkey '^[\r' z-smart-newline
+
+# 8. Vertical Selection (Shift+Up/Down)
+function z-visual-line-up() {
+    ((REGION_ACTIVE)) || zle set-mark-command
+    zle up-line
+}
+function z-visual-line-down() {
+    ((REGION_ACTIVE)) || zle set-mark-command
+    zle down-line
+}
+zle -N z-visual-line-up
+zle -N z-visual-line-down
+bindkey '^[[1;2A' z-visual-line-up   # Shift+Up
+bindkey '^[[1;2B' z-visual-line-down # Shift+Down
+
+# 9. Word Selection (Shift+Option+Left/Right)
+function z-visual-word-backward() {
+    ((REGION_ACTIVE)) || zle set-mark-command
+    zle backward-word
+}
+function z-visual-word-forward() {
+    ((REGION_ACTIVE)) || zle set-mark-command
+    zle forward-word
+}
+zle -N z-visual-word-backward
+zle -N z-visual-word-forward
+bindkey '^[[1;10D' z-visual-word-backward # Shift+Option+Left
+bindkey '^[[1;10C' z-visual-word-forward  # Shift+Option+Right
+
+# 11. LAUNCH
 # ------------------------------------------------------------------------------
 zstats
 
