@@ -69,6 +69,9 @@ defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
 # Disable "Natural" Scrolling (Standard Scroll Direction)
 defaults write NSGlobalDomain com.apple.swipescrolldirection -bool true
 
+# Scrollbars: Always show when scrolling
+defaults write NSGlobalDomain AppleShowScrollBars -string "WhenScrolling"
+
 # ==============================================================================
 # 2. UI/UX & FINDER
 # ==============================================================================
@@ -110,7 +113,7 @@ defaults write com.apple.finder FXPreferredSearchViewStyle -string "clmv"
 defaults write com.apple.finder _FXEnableColumnAutoSizing -bool true
 
 # Grouping & Sorting
-defaults write com.apple.finder FXPreferredGroupBy -string "Date Modified"
+defaults write com.apple.finder FXPreferredGroupBy -string "Name"
 defaults write com.apple.finder _FXSortFoldersFirst -bool true
 
 # Search Scope: Current Folder
@@ -167,6 +170,9 @@ defaults write com.apple.dock mineffect -string "scale"
 # Set Desktop Widgets to Monochrome
 defaults write com.apple.WindowManagerWidgetStyle -int 2
 
+# Show Indicators for Open Applications (Dots)
+defaults write com.apple.dock show-process-indicators -bool true
+
 # Hot Corners: Bottom Right = Desktop (Modifier: Cmd)
 defaults write com.apple.dock wvous-br-corner -int 4
 defaults write com.apple.dock wvous-br-modifier -int 1048576
@@ -202,6 +208,11 @@ echo "🍷  Customizing Menu Bar..."
 # Show Battery Percentage in Menu Bar
 defaults write com.apple.controlcenter.plist BatteryShowPercentage -bool true
 
+# Clock: Show Date, Analog, No Flash
+defaults write com.apple.menuextra.clock ShowDate -int 2
+defaults write com.apple.menuextra.clock IsAnalog -bool true
+defaults write com.apple.menuextra.clock FlashDateSeparators -bool false
+
 # Show Bluetooth in Menu Bar (Active)
 defaults write com.apple.controlcenter.plist Bluetooth -int 18
 
@@ -219,6 +230,22 @@ defaults write com.lwouis.alt-tab-macos mouseHoverEnabled -bool true
 defaults write com.lwouis.alt-tab-macos startAtLogin -bool true
 defaults write com.lwouis.alt-tab-macos appearanceSize -int 0
 defaults write com.lwouis.alt-tab-macos updatePolicy -int 1
+
+# ==============================================================================
+# 5.1 PRE-INSTALLED APP TWEAKS (TextEdit, App Store, iCloud)
+# ==============================================================================
+echo "📝  Tweaking TextEdit, App Store, and iCloud..."
+
+# TextEdit: Use Plain Text Mode
+defaults write com.apple.TextEdit RichText -int 0
+defaults write com.apple.TextEdit NewWindowTarget -string "txt"
+
+# iCloud: Save to Disk by default (Not Cloud)
+defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
+
+# Software Update: Auto Check for Updates
+defaults write com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true
+defaults write com.apple.commerce AutoUpdate -bool true
 
 # ==============================================================================
 # 6. MANUAL STEPS (UNSCRIPTABLE SETTINGS)

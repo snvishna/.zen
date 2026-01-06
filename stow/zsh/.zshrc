@@ -14,7 +14,7 @@ export ZSH_COMPDUMP="$HOME/.cache/.zcompdump"
 # 1. ZXOIDE INITIALIZATION (Must be early)
 # ------------------------------------------------------------------------------
 if command -v zoxide > /dev/null; then
-  eval "$(zoxide init zsh)" 
+  eval "$(zoxide init zsh --cmd cd)" 
 fi
 
 # 2. ZIMFW BOOTSTRAP
@@ -33,13 +33,17 @@ if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE} ]]; then
 fi
 source ${ZIM_HOME}/init.zsh
 
-# 3. SETTINGS & HISTORY
+# 3. SETTINGS & HISTORY (Optimized "Best of Both Worlds")
 # ------------------------------------------------------------------------------
-export HISTSIZE=1000000          # History: Keep 1 million lines
-export SAVEHIST=1000000          # History: Save 1 million lines
-export HISTFILE="$HOME/.config/.zsh_history"
-setopt EXTENDED_HISTORY SHARE_HISTORY APPEND_HISTORY INC_APPEND_HISTORY
-setopt HIST_IGNORE_DUPS HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS
+HISTFILE="${HOME}/.zsh_history"
+HISTSIZE=10000              # Memory capacity
+SAVEHIST=10000              # Disk capacity
+setopt SHARE_HISTORY        # Share history between sessions
+setopt APPEND_HISTORY       # Append to history file, don't overwrite
+setopt HIST_IGNORE_ALL_DUPS # Don't save duplicates
+setopt HIST_FIND_NO_DUPS    # Don't show duplicates in search
+setopt HIST_REDUCE_BLANKS   # Remove superfluous blanks
+setopt HIST_IGNORE_SPACE    # Ignore commands starting with space
 setopt AUTO_CD                   # Navigation: cd by typing directory name
 setopt CORRECT                   # Correction: Auto-correct commands
 
@@ -154,7 +158,22 @@ if command -v fzf >/dev/null; then
   fi
 fi
 
-# 9. ZEN ALIASES (Refactored for Searchability)
+# 9. FZF-TAB CONFIGURATION (Interactive Completion)
+# ------------------------------------------------------------------------------
+# Disable sort when completing `git checkout`
+zstyle ':completion:*:git-checkout:*' sort false
+# Set descriptions format to enable group support
+zstyle ':completion:*:descriptions' format '[%d]'
+# Preview directory's content with eza when completing cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+# Switch to flat mode for cd
+zstyle ':fzf-tab:complete:cd:*' popup-pad 1 3
+# Preview file content with bat (if installed)
+if command -v bat > /dev/null; then
+  zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 {}'
+fi
+
+# 10. ZEN ALIASES (Refactored for Searchability)
 # ------------------------------------------------------------------------------
 
 # --- Navigation & Listing ---

@@ -3,7 +3,7 @@ local config = wezterm.config_builder()
 local action = wezterm.action
 
 -- =========================================================
--- 1. APPEARANCE & AESTHETICS (Zen Mode)
+-- 2. VISUALS (Zen Glass Theme)
 -- =========================================================
 config.color_scheme = 'Catppuccin Mocha'
 -- Override the text color to Neon Green
@@ -11,16 +11,18 @@ config.colors = {
   foreground = '#a6e3a1', -- Catppuccin Green (Softer, fits the theme better)
   split = "#89b4fa",
 }
-config.font = wezterm.font_with_fallback {
-  'AnonymicePro Nerd Font', -- Or 'Anonymice Pro'
-  'JetBrainsMono Nerd Font',      -- Or 'JetBrains Mono'
-  'Apple Color Emoji',   -- Good for standard emojis
-}
-config.font_size = 16.0 -- Bumped slightly for readability
-config.line_height = 1.0 -- Gave it some breathing room (was 0.95)
 
--- Window Layout
-config.window_decorations = "TITLE|RESIZE"
+config.font = wezterm.font_with_fallback {
+  'JetBrains Mono',
+  'Apple Color Emoji',
+}
+config.font_size = 14.0
+config.line_height = 1.2
+config.window_background_opacity = 0.90
+config.macos_window_background_blur = 20
+config.window_decorations = "TITLE | RESIZE" -- Keep Title Bar
+
+
 config.window_padding = {
   left = 16,
   right = 16,
