@@ -88,4 +88,7 @@
     - [/] Fix Config Paths (Raycast/Rectangle) <!-- id: 74a -->
     - [/] Restore Finder Backup <!-- id: 74b -->
     - [/] Cleanup dfsync.json (No README) <!-- id: 74c -->
+    - [/] Direct Tracking (Finder/Launchd) <!-- id: 74d -->
+    - [/] Add dump_apps to zen-save <!-- id: 74e -->
+    - [/] Remove Redundant stow/rectangle <!-- id: 74f -->
     - [/] Git Commit & Push <!-- id: 75 -->

@@ -10,6 +10,7 @@ STOW_DIR="${ZEN_HOME}/stow"
 MANIFESTS="${ZEN_HOME}/manifests"
 BREWFILE="${MANIFESTS}/Brewfile"
 NPM_LIST="${MANIFESTS}/npm_globals.txt"
+APPS_LIST="${MANIFESTS}/installed_apps.txt"
 MACOS_DIR="${MANIFESTS}/macos"
 LOG_FILE="${MANIFESTS}/last_backup.log"
 
@@ -75,6 +76,12 @@ dump_vscode() {
     fi
 }
 
+dump_apps() {
+    echo -e "📱 Dumping /Applications..."
+    ls -1 /Applications > "$APPS_LIST"
+    echo -e "${GREEN}✔︎ Apps list updated.${NC}"
+}
+
 dump_defaults() {
     echo -e "⚙️  Snapshotting macOS Defaults..."
     local private_macos="${MANIFESTS}/private/macos"
@@ -101,10 +108,7 @@ dump_private_configs() {
     # 3. Rectangle (Preferences only)
     cp "${HOME}/Library/Preferences/com.knollsoft.Rectangle.plist" "${private_root}/rectangle/" 2>/dev/null || true
 
-    # 4. Finder Saved Search
-    cp "${HOME}/Library/Saved Searches/Recents.savedSearch" "${private_root}/finder/" 2>/dev/null || true
-
-    # 5. Update dfsync binary in repo
+    # 4. Update dfsync binary in repo
     cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
 
     echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"
@@ -133,6 +137,7 @@ perform_snapshot() {
     dump_brew
     dump_npm
     dump_vscode
+    dump_apps
     dump_defaults
     dump_private_configs
 
