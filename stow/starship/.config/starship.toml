@@ -10,7 +10,20 @@ format = """
 [ $directory ](bg:mantle fg:lavender)\
 [ $git_branch$git_status ](fg:maroon)\
 [ $nodejs$rust$python$golang ](fg:sapphire)\
+[ $cmd_duration ](fg:yellow)\
+[ $time ](fg:subtext0)\
 $line_break$character"""
+
+[cmd_duration]
+min_time = 500
+show_milliseconds = true
+format = "took [$duration]($style)"
+
+[time]
+disabled = false
+style = "fg:subtext0"
+format = "at [$time]($style)"
+time_format = "%R" # 24-hour format (e.g., 14:30)
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"

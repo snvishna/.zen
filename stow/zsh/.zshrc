@@ -173,59 +173,6 @@ if command -v bat > /dev/null; then
   zstyle ':fzf-tab:complete:*:*' fzf-preview 'bat --color=always --style=numbers --line-range=:500 {}'
 fi
 
-# 10. ZEN ALIASES (Refactored for Searchability)
-# ------------------------------------------------------------------------------
-
-# --- Navigation & Listing ---
-alias ..="cd .."         # Nav: Go up one level
-alias ...="cd ../.."     # Nav: Go up two levels
-alias ....="cd ../../.." # Nav: Go up three levels
-alias .config="cd ~/.config" # Nav: Go to config
-alias .zen="cd ~/.zen"       # Nav: Go to .zen repo
-alias .bin="cd ~/.local/bin" # Nav: Go to local bin
-
-alias ls="eza --icons --group-directories-first" # List: Modern ls (Eza)
-alias ll="eza -lah --icons --group-directories-first --git" # List: Details + Git
-alias l="ll" # List: Shortest valid form
-alias lt="eza --tree --level=2 --icons" # List: Tree view
-
-# --- Search & Preview ---
-alias grep="rg"  # Search: Replace grep with Ripgrep
-alias ft="rg"    # Search: Find Text (Ripgrep)
-alias ff="fd"    # Search: Find File (fd)
-alias cat="bat"  # Read: Replace cat with Bat
-alias p="bat --style=plain" # Read: Plain text (easy copy)
-
-# --- Clipboard (MacOS) ---
-alias cpd="pwd | pbcopy && echo '✅ Path copied'" # Clip: Copy current path
-alias cpf="pbcopy <" # Clip: Copy file content
-alias cpl="fc -ln -1 | pbcopy && echo '✅ Last command copied'" # Clip: Copy last cmd
-
-# --- Git Workflows ---
-alias g="git" # Git: Base command
-alias gs="git status"        # Git: Status
-alias ga="git add ."         # Git: Add all
-alias gc="git commit -m"     # Git: Commit with message
-alias gp="git push"          # Git: Push
-alias gl="git log --oneline --graph --decorate" # Git: Graph log
-alias gd="git diff"          # Git: Diff (uses delta)
-alias gundo="git reset --soft HEAD~1" # Git: Undo last commit
-alias gwip="git add -A; git rm \$(git ls-files --deleted) 2> /dev/null; git commit --no-verify -m '--wip--'" # Git: Work in progress
-alias gnah="git reset --hard && git clean -df" # Git: Reset everything (Dangerous)
-
-# --- System & Maintenance ---
-alias reload="exec zsh" # Sys: Reload shell
-alias diff="delta --side-by-side --light" # Sys: Better diff
-alias rm="echo 'Use trash or /bin/rm'; false" # Sys: Safety catch for rm
-alias t="trash" # Sys: Move to Trash
-alias brewup="brew update && brew upgrade && brew cleanup" # Sys: Update all
-alias myip="curl https://ifconfig.me; echo" # Net: My Public IP (HTTPS)
-alias ports="lsof -i -P -n | grep LISTEN" # Net: Open ports
-alias h="history 0 | fzf" # Hist: FZF History Search
-
-# --- Zen Tools ---
-alias backup="zen-save" # Zen: Run backups
-alias install-stack="zen-load" # Zen: Rehydrate system
 
 # 10. EDITOR EXPERIENCE (Keybindings)
 # ------------------------------------------------------------------------------
@@ -369,9 +316,85 @@ zle -N z-visual-word-forward
 bindkey '^[[1;10D' z-visual-word-backward # Shift+Option+Left
 bindkey '^[[1;10C' z-visual-word-forward  # Shift+Option+Right
 
-# 11. LAUNCH
+# 11. LAUNCH & ALIASES (Post-Init)
 # ------------------------------------------------------------------------------
-zstats
+# zstats Lite (Fast & Recursive)
+function zstats() {
+    # 1. Instant: Root item count
+    local root_count=$(ls -1 | wc -l | tr -d ' ')
+    echo -n "  📂 $root_count items"
+
+    # 2. Async-ish: Recursive count (Timeout 1s, Exclude heavy folders)
+    # Using 'fd' because it's insanely fast and respects .gitignore
+    if command -v fd > /dev/null; then
+        local deep_count=$(timeout 0.5s fd --type f --hidden --no-ignore \
+            --exclude .git \
+            --exclude node_modules \
+            --exclude .venv \
+            --exclude target \
+            --exclude dist \
+            --exclude build \
+            --exclude .cache \
+            --exclude .next \
+            | wc -l | tr -d ' ')
+        echo " | 🚀 $deep_count deep"
+    else
+        echo "" 
+    fi
+}
+chpwd_functions+=(zstats)
+
+# 12. ZEN ALIASES (Moved to Bottom to Override Zim)
+# ------------------------------------------------------------------------------
+# --- Navigation & Listing ---
+alias ..="cd .."         # Nav: Go up one level
+alias ...="cd ../.."     # Nav: Go up two levels
+alias ....="cd ../../.." # Nav: Go up three levels
+alias .config="cd ~/.config" # Nav: Go to config
+alias .zen="cd ~/.zen"       # Nav: Go to .zen repo
+alias .bin="cd ~/.local/bin" # Nav: Go to local bin
+
+alias ls="eza --icons --group-directories-first" # List: Modern ls (Eza)
+alias ll="eza -lah --icons --group-directories-first --git" # List: Details + Git
+alias la="eza -lah --icons --group-directories-first --git" # List: All (same as ll)
+alias lt="eza --tree --level=2 --icons" # List: Tree view
+alias lts="eza --tree --level=2 --icons --long --total-size" # List: Tree with Directory Sizes (Slow)
+
+# --- Search & Preview ---
+alias grep="rg"  # Search: Replace grep with Ripgrep
+alias ft="rg"    # Search: Find Text (Ripgrep)
+alias ff="fd"    # Search: Find File (fd)
+alias cat="bat"  # Read: Replace cat with Bat
+alias p="bat --style=plain" # Read: Plain text (easy copy)
+
+# --- Clipboard (MacOS) ---
+alias cpd="pwd | pbcopy && echo '✅ Path copied'" # Clip: Copy current path
+alias cpf="pbcopy <" # Clip: Copy file content
+alias cpl="fc -ln -1 | pbcopy && echo '✅ Last command copied'" # Clip: Copy last cmd
+
+# --- Git Workflows ---
+alias g="git" # Git: Base command
+alias gs="git status"        # Git: Status
+alias ga="git add ."         # Git: Add all
+alias gc="git commit -m"     # Git: Commit with message
+alias gp="git push"          # Git: Push
+alias gl="git log --oneline --graph --decorate" # Git: Graph log
+alias gd="git diff"          # Git: Diff (uses delta)
+alias gundo="git reset --soft HEAD~1" # Git: Undo last commit
+alias gwip="git add -A; git rm \$(git ls-files --deleted) 2> /dev/null; git commit --no-verify -m '--wip--'" # Git: Work in progress
+alias gnah="git reset --hard && git clean -df" # Git: Reset everything (Dangerous)
+
+# --- System & Maintenance ---
+alias reload="exec zsh" # Sys: Reload shell
+alias diff="delta --side-by-side --light" # Sys: Better diff
+alias rm="echo 'Use trash or /bin/rm'; false" # Sys: Safety catch for rm
+alias t="trash" # Sys: Move to Trash
+alias brewup="brew update && brew upgrade && brew cleanup" # Sys: Update all
+alias myip="curl https://ifconfig.me; echo" # Net: My Public IP (HTTPS)
+alias ports="lsof -i -P -n | grep LISTEN" # Net: Open ports
+alias h="history 0 | fzf" # Hist: FZF History Search
+alias backup="zen-save" # Zen: Run backups
+alias install-stack="zen-load" # Zen: Rehydrate system
 
 # Kiro CLI post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
