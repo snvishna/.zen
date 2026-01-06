@@ -84,4 +84,5 @@
     - [/] Fix WezTerm Search (Cmd+F) <!-- id: 71 -->
     - [/] Fix Search Paste (Cmd+V) <!-- id: 72 -->
     - [/] Fix zen-save & dfsync.json <!-- id: 73 -->
-    - [/] Git Commit & Push <!-- id: 74 -->
+    - [/] Refine Private Manifests (Privacy) <!-- id: 74 -->
+    - [/] Git Commit & Push <!-- id: 75 -->

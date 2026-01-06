@@ -77,9 +77,45 @@ dump_vscode() {
 
 dump_defaults() {
     echo -e "⚙️  Snapshotting macOS Defaults..."
-    mkdir -p "$MACOS_DIR"
-    defaults read > "${MACOS_DIR}/all_settings_bak.txt"
-    echo -e "${GREEN}✔︎ Defaults exported.${NC}"
+    local private_macos="${MANIFESTS}/private/macos"
+    mkdir -p "$private_macos"
+    
+    # Dump full settings to private area (Gist only, ignored by Git)
+    defaults read > "${private_macos}/macos_full_dump.txt"
+    echo -e "${GREEN}✔︎ Defaults exported to ${private_macos}/macos_full_dump.txt${NC}"
+}
+
+dump_private_configs() {
+    echo -e "🔒 Snapshotting Private Configs..."
+    local private_root="${MANIFESTS}/private"
+    
+    # 1. Create Directories in manifests/private
+    mkdir -p "${private_root}/raycast"
+    mkdir -p "${private_root}/rectangle"
+    mkdir -p "${private_root}/finder"
+    mkdir -p "${private_root}/launchd"
+    mkdir -p "${private_root}/maccy"
+    
+    # 2. Raycast
+    cp "${HOME}/Library/Preferences/com.raycast.macos.plist" "${private_root}/raycast/" 2>/dev/null || true
+    cp "${HOME}/Library/Application Support/Raycast/Raycast.rayconfig" "${private_root}/raycast/" 2>/dev/null || true
+    
+    # 3. Rectangle
+    cp "${HOME}/Library/Application Support/Rectangle/config.plist" "${private_root}/rectangle/" 2>/dev/null || true
+
+    # 4. Finder Saved Search
+    cp "${HOME}/Library/Saved Searches/Recents.savedSearch" "${private_root}/finder/" 2>/dev/null || true
+
+    # 5. Launchd (Template vs Real? We backup the Real one)
+    cp "${HOME}/Library/LaunchAgents/com.shankar.configbackup.plist" "${private_root}/launchd/" 2>/dev/null || true
+
+    # 6. Maccy
+    cp "${HOME}/Library/Application Support/Maccy/config.plist" "${private_root}/maccy/" 2>/dev/null || true
+    
+    # 7. Update dfsync binary in repo (Public is fine, it's a binary)
+    cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
+
+    echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"
 }
 
 run_sync() {
@@ -106,6 +142,7 @@ perform_snapshot() {
     dump_npm
     dump_vscode
     dump_defaults
+    dump_private_configs
 
     if [[ "$do_sync" == "true" ]]; then
         run_sync
