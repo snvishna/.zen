@@ -15,7 +15,7 @@ format = """
 $line_break$character"""
 
 [cmd_duration]
-min_time = 500
+min_time = 10   # Show duration for almost anything (was 500ms)
 show_milliseconds = true
 format = "took [$duration]($style)"
 
