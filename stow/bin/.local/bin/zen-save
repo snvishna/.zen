@@ -104,10 +104,7 @@ dump_private_configs() {
     # 4. Finder Saved Search
     cp "${HOME}/Library/Saved Searches/Recents.savedSearch" "${private_root}/finder/" 2>/dev/null || true
 
-    # 5. Launchd
-    cp "${HOME}/Library/LaunchAgents/com.shankar.configbackup.plist" "${private_root}/launchd/" 2>/dev/null || true
-    
-    # 6. Update dfsync binary in repo
+    # 5. Update dfsync binary in repo
     cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
 
     echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"

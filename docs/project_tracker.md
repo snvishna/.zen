@@ -86,4 +86,6 @@
     - [/] Fix zen-save & dfsync.json <!-- id: 73 -->
     - [/] Refine Private Manifests (Privacy) <!-- id: 74 -->
     - [/] Fix Config Paths (Raycast/Rectangle) <!-- id: 74a -->
+    - [/] Restore Finder Backup <!-- id: 74b -->
+    - [/] Cleanup dfsync.json (No README) <!-- id: 74c -->
     - [/] Git Commit & Push <!-- id: 75 -->
