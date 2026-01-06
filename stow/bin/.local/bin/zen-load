@@ -54,6 +54,38 @@ check_stow() {
     fi
 }
 
+backup_file() {
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_dir="${ZEN_HOME}/graveyard/backups/${timestamp}"
+    mkdir -p "$backup_dir"
+    echo -e "  - Backing up $1 to $backup_dir/"
+    mv "$1" "$backup_dir/"
+}
+
+resolve_conflicts() {
+    echo -e "\n--- ⚔️  Resolving Conflicts ---"
+    
+    # 1. zshrc
+    if [[ -f "${HOME}/.zshrc" && ! -L "${HOME}/.zshrc" ]]; then
+        backup_file "${HOME}/.zshrc"
+    fi
+    # 1b. zimrc (Consolidate to zsh package)
+    if [[ -f "${HOME}/.zimrc" && ! -L "${HOME}/.zimrc" ]]; then
+        backup_file "${HOME}/.zimrc"
+    fi
+    
+    # 2. gitconfig
+    if [[ -f "${HOME}/.gitconfig" && ! -L "${HOME}/.gitconfig" ]]; then
+        backup_file "${HOME}/.gitconfig"
+    fi
+    
+    # 3. dfsync binary (Stow link vs Real file)
+    if [[ -f "${HOME}/.local/bin/dfsync" && ! -L "${HOME}/.local/bin/dfsync" ]]; then
+        echo -e "  - Replacing local dfsync binary with Stow link..."
+        backup_file "${HOME}/.local/bin/dfsync"
+    fi
+}
+
 run_stow() {
     local mode="$1"
     echo -e "\n--- 📦 Stowing Packages ---"
@@ -61,18 +93,14 @@ run_stow() {
     local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
     [[ "$mode" == "check" ]] && stow_args+=("-n")
     
-    # Packages to stow (Directory names in stow/)
+    # Packages to stow (Updated: Removed rectangle, finder, launchd, zim)
     local packages=(
         "zsh"
         "wezterm"
-        "zim"
         "starship"
         "vscode"
-        "rectangle"
-        "finder"
         "git"
         "bin"
-        "launchd"
     )
     
     # Resolve conflicts before attempting to stow

@@ -91,4 +91,5 @@
     - [/] Direct Tracking (Finder/Launchd) <!-- id: 74d -->
     - [/] Add dump_apps to zen-save <!-- id: 74e -->
     - [/] Remove Redundant stow/rectangle <!-- id: 74f -->
+    - [/] Fix zen-load Conflicts & Package List <!-- id: 74g -->
     - [/] Git Commit & Push <!-- id: 75 -->
