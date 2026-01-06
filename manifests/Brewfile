@@ -36,8 +36,21 @@ cask "wezterm"
 brew "jq"
 # UNIX shell (command interpreter)
 brew "zsh"
-# Clone of ls with colorful output, file type icons, and more
-brew "lsd"
+# Clone of ls with colorful output, file type icons, and more (Legacy, replaced by eza but keeping for safety if needed, or remove? Plan said replace lsd. I'll add eza and keep lsd for now unless explicitly told to remove, but plan said "replacing lsd". I will remove lsd to be clean.)
+# Modern replacement for ls
+brew "eza"
+# Smarter cd
+brew "zoxide"
+# Cat clone with syntax highlighting
+brew "bat"
+# Simple, fast alternative to find
+brew "fd"
+# Safe rm
+brew "trash"
+# Simplified man pages
+brew "tldr"
+# Resource monitor
+brew "btop"
 # Ambitious Vim-fork focused on extensibility and agility
 brew "neovim"
 # Manage multiple Node.js versions

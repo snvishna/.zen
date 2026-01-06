@@ -1,15 +1,21 @@
+# System Files
 .DS_Store
 *.log
 *.tmp
-# Ignore the actual dfsync binary if it accidentally gets copied here
-bin/dfsync
-manifests/macos/all_settings_bak.txt
 *.bak
+*.old
+
+# Personal Configuration (Not for Git)
 dfsync.json
-config/finder/Recents.savedSearch
-# ZimFW
-config/zim/modules/
-config/zim/init.zsh*
-config/zim/login_init.zsh*
-launchd/*.plist
-.gitconfig.local
+manifests/macos/all_settings_bak.txt
+
+# Editors
+.vscode
+.idea
+
+# Build Artifacts / Binaries
+stow/bin/.local/bin/dfsync
+stow/zim/.zim
+
+# Note: We purposely DO NOT ignore launchd plists or other configs in stow/
+stow/launchd/Library/LaunchAgents/com.shankar.configbackup.plist

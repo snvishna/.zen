@@ -1,7 +1,7 @@
 {
     // --- 1. VISUALS (Your Base) ---
     "workbench.iconTheme": "vscode-icons",
-    "workbench.colorTheme": "Catppuccin Latte",
+    "workbench.colorTheme": "Catppuccin Macchiato",
     "editor.fontFamily": "'JetBrainsMono Nerd Font', 'JetBrains Mono', monospace",
     "editor.fontLigatures": true,
     "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",

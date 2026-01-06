@@ -1,0 +1,296 @@
+#!/bin/bash
+#  Zen Load v5.0 (Stow Edition)
+# Granular System Restoration: Stow, Brew, NPM, VS Code, macOS Defaults, dfsync.
+
+set -e
+
+# --- Configuration ---
+ZEN_HOME="${HOME}/.zen"
+STOW_DIR="${ZEN_HOME}/stow"
+MANIFESTS="${ZEN_HOME}/manifests"
+BREWFILE="${MANIFESTS}/Brewfile"
+NPM_LIST="${MANIFESTS}/npm_globals.txt"
+VSCODE_LIST="${STOW_DIR}/vscode/.config/vscode/extensions.txt"
+MACOS_SCRIPT="${MANIFESTS}/macos/defaults.sh"
+
+# Upstream Source
+DFSYNC_URL="https://raw.githubusercontent.com/snvishna/dotfilesync/master/src/dfsync.sh"
+
+# --- Colors ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+GRAY='\033[0;90m'
+NC='\033[0m'
+
+# --- Help Menu ---
+show_help() {
+    echo -e "${BLUE}Zen Load - Environment Restorer${NC}"
+    echo -e "Usage: zen-load [OPTIONS]"
+    echo -e "\n${YELLOW}Core:${NC}"
+    echo -e "  (no args)   Stows packages and checks config health."
+    echo -e "  --check     Dry-run Stow to detect conflicts."
+    echo -e "\n${YELLOW}Installers:${NC}"
+    echo -e "  --all       God Mode. Installs EVERYTHING (Brew, Stow, Fonts, dfsync, defaults)."
+    echo -e "  --brew      Install Homebrew and packages."
+    echo -e "  --dfsync    Install/Update dfsync and pull data."
+    echo -e "  --npm       Install Node.js global packages."
+    echo -e "  --vscode    Install VS Code extensions."
+    echo -e "  --macos     Apply macOS system defaults."
+    echo -e "\n${YELLOW}Flags:${NC}"
+    echo -e "  -y          Auto-confirm dfsync prompts."
+    echo -e "  -v          Verbose logging."
+    echo -e "  --help      Show this help message."
+    exit 0
+}
+
+# --- 1. Stow Logic ---
+check_stow() {
+    if ! command -v stow &> /dev/null; then
+        echo -e "${YELLOW}Stow not found. Installing via Homebrew...${NC}"
+        install_homebrew_core_only
+        brew install stow
+    fi
+}
+
+run_stow() {
+    local mode="$1"
+    echo -e "\n--- 📦 Stowing Packages ---"
+    
+    local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
+    [[ "$mode" == "check" ]] && stow_args+=("-n")
+    
+    # Packages to stow (Directory names in stow/)
+    local packages=(
+        "zsh"
+        "wezterm"
+        "zim"
+        "starship"
+        "vscode"
+        "rectangle"
+        "finder"
+        "git"
+        "bin"
+        "launchd"
+    )
+    
+    # Resolve conflicts before attempting to stow
+    if [[ "$mode" != "check" ]]; then
+        resolve_conflicts
+    fi
+
+    for pkg in "${packages[@]}"; do
+        if [[ -d "${STOW_DIR}/${pkg}" ]]; then
+            echo -e "  - Stowing ${pkg}..."
+            stow -R "${stow_args[@]}" "$pkg" 2>&1 | sed 's/^/    /'
+        else
+            echo -e "${YELLOW}[WARN]${NC} Package $pkg not found in stow dir."
+        fi
+    done
+    
+    # Verify Critical Paths
+    if [[ "$mode" != "check" ]]; then
+        echo -e "\n--- 🔍 Path Verification ---"
+        if [[ -L "${HOME}/.zshrc" ]]; then echo -e "${GREEN}✔︎ .zshrc linked${NC}"; else echo -e "${RED}✘ .zshrc missing${NC}"; fi
+        if [[ -d "${HOME}/.config/wezterm" ]]; then echo -e "${GREEN}✔︎ WezTerm config linked${NC}"; else echo -e "${RED}✘ WezTerm config missing${NC}"; fi
+    fi
+}
+
+# --- 2. Installers ---
+install_homebrew_core_only() {
+    if ! command -v brew &> /dev/null; then
+        echo "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
+    fi
+}
+
+install_homebrew() {
+    echo -e "\n--- 🍺 Installing Homebrew Packages ---"
+    # Prevent quarantine for casks (faster, cleaner)
+    export HOMEBREW_CASK_OPTS="--no-quarantine"
+    
+    install_homebrew_core_only
+    
+    if [[ -f "$BREWFILE" ]]; then
+        brew bundle install --file="$BREWFILE"
+        echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
+        setup_fonts
+    else
+        echo -e "${YELLOW}[SKIP]${NC} No Brewfile found."
+    fi
+}
+
+setup_fonts() {
+    echo -e "\n--- 🅰️  Setting up Fonts ---"
+    local font_source="/opt/homebrew/share/fonts"
+    local font_dest="${HOME}/Library/Fonts"
+    local found_new=false
+
+    if [[ -d "$font_source" ]]; then
+        # Check specifically for JetBrains Nerd Font as WezTerm needs it
+        for font in "$font_source"/*; do
+            local fname=$(basename "$font")
+            if [[ ! -f "${font_dest}/${fname}" ]]; then
+                cp "$font" "$font_dest/"
+                echo -e "  - Installed: $fname"
+                found_new=true
+            fi
+        done
+        
+        if [[ "$found_new" == "true" ]]; then
+            echo "Refreshing font cache..."
+            atsutil server -shutdown 2>/dev/null || true
+            atsutil server -ping 2>/dev/null || true
+        else
+            echo -e "${GREEN}✔︎ Fonts already up to date.${NC}"
+        fi
+    else
+        echo -e "${YELLOW}[WARN]${NC} No Homebrew fonts found at $font_source"
+    fi
+}
+
+
+install_dfsync() {
+    local force_update="$1"
+    local dfsync_args="$2"
+    echo -e "\n--- ☁️  Installing/Configuring dfsync ---"
+    local bin_path="${HOME}/.local/bin/dfsync"
+    local installed=false
+
+    if [[ ! -x "$bin_path" || "$force_update" == "true" ]]; then
+        echo -e "Downloading latest dfsync..."
+        if curl -fsSL "$DFSYNC_URL" -o "$bin_path"; then
+            chmod +x "$bin_path"
+            if head -n 1 "$bin_path" | grep -q "#!"; then
+                echo -e "${GREEN}✔︎ dfsync binary installed.${NC}"
+                installed=true
+            else
+                echo -e "${RED}[ERROR]${NC} Invalid download."
+                rm "$bin_path"
+                return
+            fi
+        else
+            echo -e "${RED}[ERROR]${NC} Download failed."
+            return
+        fi
+    else
+        echo -e "${YELLOW}[SKIP]${NC} dfsync already installed."
+        installed=true
+    fi
+
+    if [[ "$installed" == "true" ]]; then
+        echo -e "Running dfsync setup..."
+        "$bin_path" setup $dfsync_args
+        echo -e "Running dfsync pull..."
+        "$bin_path" pull $dfsync_args
+    fi
+}
+
+install_npm_globals() {
+    echo -e "\n--- 🟢 Installing NPM Globals ---"
+    if command -v npm &> /dev/null && [[ -f "$NPM_LIST" ]]; then
+        grep -vE '^\s*#|^\s*$' "$NPM_LIST" | while read -r pkg; do
+            npm list -g "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg")
+        done
+    fi
+}
+
+install_vscode_extensions() {
+    echo -e "\n--- 🟣 Installing VS Code Extensions ---"
+    if command -v code &> /dev/null && [[ -f "$VSCODE_LIST" ]]; then
+        grep -vE '^\s*#|^\s*$' "$VSCODE_LIST" | \
+        xargs -L 1 -P 4 code --install-extension --force > /dev/null 2>&1
+        echo -e "${GREEN}✔︎ Extensions installed.${NC}"
+    fi
+}
+
+install_macos_defaults() {
+    echo -e "\n--- 🍎 Applying macOS Defaults ---"
+    # 3. Defaults
+    if [[ -f "$MACOS_SCRIPT" ]]; then
+        echo "Applying defaults..."
+        chmod +x "$MACOS_SCRIPT"
+        "$MACOS_SCRIPT"
+    fi
+    
+    # 4. Install Config Backup Agent (Template -> Real)
+    echo "Installing Config Backup Agent..."
+    local template="${ZEN_HOME}/manifests/templates/com.template.configbackup.plist"
+    local target="${HOME}/Library/LaunchAgents/com.shankar.configbackup.plist"
+    
+    if [[ -f "$template" ]]; then
+        sed "s|{{HOME}}|${HOME}|g" "$template" > "$target"
+        
+        launchctl unload "$target" 2>/dev/null || true
+        launchctl load "$target"
+        echo "✔︎ Config Backup Agent installed and loaded."
+    fi
+    
+    # 5. Fix Finder Saved Search (Template -> Real)
+    echo "Configuring Finder Recents..."
+    local recents_template="${ZEN_HOME}/manifests/templates/Recents.savedSearch.template"
+    local recents_target="${HOME}/Library/Saved Searches/Recents.savedSearch"
+    if [[ -f "$recents_template" ]]; then
+        mkdir -p "$(dirname "$recents_target")"
+        sed "s|{{HOME}}|${HOME}|g" "$recents_template" > "$recents_target"
+    fi
+
+    echo -e "${GREEN}✔︎ Defaults applied.${NC}"
+}
+
+# --- Main Logic ---
+main() {
+    local mode="apply"
+    local do_brew=false; local do_npm=false; local do_vscode=false
+    local do_macos=false; local do_dfsync=false
+    local force_update=false
+    local dfsync_args=""
+
+    for arg in "$@"; do
+        case $arg in
+            --check|-c)   mode="check" ;;
+            --all)        do_brew=true; do_dfsync=true; do_npm=true; do_vscode=true; do_macos=true ;;
+            --brew)       do_brew=true ;;
+            --dfsync)     do_dfsync=true ;;
+            --npm)        do_npm=true ;;
+            --vscode)     do_vscode=true ;;
+            --macos)      do_macos=true ;;
+            --force)      force_update=true ;;
+            -y)           dfsync_args+=" -y" ;;
+            -v)           dfsync_args+=" -v" ;;
+            --help|-h)    show_help ;;
+        esac
+    done
+
+    if [[ "$mode" == "check" ]]; then
+        echo -e "\n--- 🔍 Running Stow Conflict Check ---"
+        run_stow "check"
+        if [[ "$do_dfsync" == "true" ]]; then
+             echo -e "\n(dfsync check skipped in dry-run)"
+        fi
+    else
+        echo "--- 🚀 Applying Zen Configuration ---"
+        echo -e "${YELLOW}🔐 Zen requires admin privileges (sudo).${NC}"
+        sudo -v
+        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+        
+        # Resolve Conflicts First (Backup real files)
+        resolve_conflicts
+        
+        # Run Stow
+        run_stow "$mode"
+
+        # Order: Brew -> Quarantine -> dfsync -> Rest
+        [[ "$do_brew" == "true" ]]   && install_homebrew
+        [[ "$do_dfsync" == "true" ]] && install_dfsync "$force_update" "$dfsync_args"
+        [[ "$do_npm" == "true" ]]    && install_npm_globals
+        [[ "$do_vscode" == "true" ]] && install_vscode_extensions
+        [[ "$do_macos" == "true" ]]  && install_macos_defaults
+    fi
+
+    echo -e "\n${GREEN}✔︎ Zen Environment Processed.${NC}"
+}
+
+main "$@"
