@@ -94,25 +94,20 @@ dump_private_configs() {
     mkdir -p "${private_root}/rectangle"
     mkdir -p "${private_root}/finder"
     mkdir -p "${private_root}/launchd"
-    mkdir -p "${private_root}/maccy"
     
-    # 2. Raycast
+    # 2. Raycast (Preferences only)
     cp "${HOME}/Library/Preferences/com.raycast.macos.plist" "${private_root}/raycast/" 2>/dev/null || true
-    cp "${HOME}/Library/Application Support/Raycast/Raycast.rayconfig" "${private_root}/raycast/" 2>/dev/null || true
     
-    # 3. Rectangle
-    cp "${HOME}/Library/Application Support/Rectangle/config.plist" "${private_root}/rectangle/" 2>/dev/null || true
+    # 3. Rectangle (Preferences only)
+    cp "${HOME}/Library/Preferences/com.knollsoft.Rectangle.plist" "${private_root}/rectangle/" 2>/dev/null || true
 
     # 4. Finder Saved Search
     cp "${HOME}/Library/Saved Searches/Recents.savedSearch" "${private_root}/finder/" 2>/dev/null || true
 
-    # 5. Launchd (Template vs Real? We backup the Real one)
+    # 5. Launchd
     cp "${HOME}/Library/LaunchAgents/com.shankar.configbackup.plist" "${private_root}/launchd/" 2>/dev/null || true
-
-    # 6. Maccy
-    cp "${HOME}/Library/Application Support/Maccy/config.plist" "${private_root}/maccy/" 2>/dev/null || true
     
-    # 7. Update dfsync binary in repo (Public is fine, it's a binary)
+    # 6. Update dfsync binary in repo
     cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
 
     echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"
