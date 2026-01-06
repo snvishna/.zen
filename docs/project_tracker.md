@@ -85,4 +85,5 @@
     - [/] Fix Search Paste (Cmd+V) <!-- id: 72 -->
     - [/] Fix zen-save & dfsync.json <!-- id: 73 -->
     - [/] Refine Private Manifests (Privacy) <!-- id: 74 -->
+    - [/] Fix Config Paths (Raycast/Rectangle) <!-- id: 74a -->
     - [/] Git Commit & Push <!-- id: 75 -->
