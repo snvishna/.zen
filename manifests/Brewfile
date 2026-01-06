@@ -1,72 +1,40 @@
-# Enable Windows-like alt-tab
-cask "alt-tab"
-# Transfer files from and to an Android smartphone
-cask "android-file-transfer"
-# Android SDK component
-cask "android-platform-tools"
-# Web browser
-cask "firefox@developer-edition"
-# No description
-cask "font-anonymice-nerd-font"
-# No description
-cask "font-anonymous-pro"
-# No description
-cask "font-jetbrains-mono-nerd-font"
-# Menu bar manager
-cask "jordanbaird-ice"
-# Open-source keystroke visualiser
-cask "keycastr"
-# Agent-centric IDE with spec-driven development
-cask "kiro"
-# AI-powered productivity tool for the command-line
-cask "kiro-cli"
-# Menu bar utility for toggling dark mode
-cask "nightfall"
-# Control your tools with a few keystrokes
-cask "raycast"
-# Move and resize windows using keyboard shortcuts or snap areas
-cask "rectangle"
-# System monitor for the menu bar
-cask "stats"
-# Open-source code editor
-cask "visual-studio-code"
-# GPU-accelerated cross-platform terminal emulator and multiplexer
-cask "wezterm"
-# Lightweight and flexible command-line JSON processor
-brew "jq"
-# UNIX shell (command interpreter)
-brew "zsh"
-# Clone of ls with colorful output, file type icons, and more (Legacy, replaced by eza but keeping for safety if needed, or remove? Plan said replace lsd. I'll add eza and keep lsd for now unless explicitly told to remove, but plan said "replacing lsd". I will remove lsd to be clean.)
-# Modern replacement for ls
-brew "eza"
-# Smarter cd
-brew "zoxide"
-# Cat clone with syntax highlighting
 brew "bat"
-# Simple, fast alternative to find
-brew "fd"
-# Safe rm
-brew "trash"
-# Simplified man pages
-brew "tldr"
-# Resource monitor
 brew "btop"
-# Ambitious Vim-fork focused on extensibility and agility
-brew "neovim"
-# Manage multiple Node.js versions
-brew "nvm"
-# Search tool like grep and The Silver Searcher
-brew "ripgrep"
-# Display directories as trees (with optional color/HTML output)
-brew "tree"
-# Command-line fuzzy finder written in Go
+brew "cask"
+brew "eza"
+brew "fd"
 brew "fzf"
-# Cross-shell prompt for astronauts
-brew "starship"
-# GitHub command-line tool
 brew "gh"
-# Syntax-highlighting pager for git and diff output
 brew "git-delta"
+brew "jq"
+brew "lsd"
+brew "neovim"
+brew "nvm"
+brew "ripgrep"
+brew "starship"
+brew "stow"
+brew "tldr"
+brew "trash"
+brew "tree"
+brew "zoxide"
+brew "zsh"
+cask "alt-tab"
+cask "android-file-transfer"
+cask "android-platform-tools"
+cask "firefox@developer-edition"
+cask "font-anonymice-nerd-font"
+cask "font-anonymous-pro"
+cask "font-jetbrains-mono-nerd-font"
+cask "jordanbaird-ice"
+cask "keycastr"
+cask "kiro"
+cask "kiro-cli"
+cask "nightfall"
+cask "raycast"
+cask "rectangle"
+cask "stats"
+cask "visual-studio-code"
+cask "wezterm"
 vscode "catppuccin.catppuccin-vsc"
 vscode "eamodio.gitlens"
 vscode "github.copilot"
