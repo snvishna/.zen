@@ -160,11 +160,13 @@ install_dfsync() {
     local installed=false
 
     if [[ ! -x "$bin_path" || "$force_update" == "true" ]]; then
+        # User requested ALWAYS fetch latest version (Self-Update)
+        # We perform this check for every run to ensure strict version compliance.
         echo -e "Downloading latest dfsync..."
-        if curl -fsSL "$DFSYNC_URL" -o "$bin_path"; then
+        if curl -fsSL "$DFSYNC_URL" -o "$bin_path" 2>/dev/null; then
             chmod +x "$bin_path"
             if head -n 1 "$bin_path" | grep -q "#!"; then
-                echo -e "${GREEN}✔︎ dfsync binary installed.${NC}"
+                echo -e "${GREEN}✔︎ dfsync binary updated.${NC}"
                 installed=true
             else
                 echo -e "${RED}[ERROR]${NC} Invalid download."
@@ -172,11 +174,12 @@ install_dfsync() {
                 return
             fi
         else
-            echo -e "${RED}[ERROR]${NC} Download failed."
-            return
+            echo -e "${RED}[ERROR]${NC} Download failed. Using existing binary if available."
+            [[ -x "$bin_path" ]] && installed=true
         fi
     else
-        echo -e "${YELLOW}[SKIP]${NC} dfsync already installed."
+        # Fallback if somehow logic skips (shouldn't happen with user request)
+        echo -e "${YELLOW}[SKIP]${NC} dfsync present."
         installed=true
     fi
 

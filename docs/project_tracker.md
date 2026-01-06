@@ -1,3 +1,11 @@
+# Project Task Tracker
+
+> [!IMPORTANT]
+> **Workflow Protocol**:
+> 1. **Do NOT** `git commit` or `git push` automatically.
+> 2. **Wait** for explicit user instruction to push.
+> 3. **BEFORE** pushing: Ensure `README.md` and `docs/*` are fully updated and synced.
+
 # Tasks
 
 - [/] Explore existing architecture <!-- id: 0 -->
@@ -55,3 +63,25 @@
 - [/] Upgrade Autocompletion & Visuals <!-- id: 52 -->
     - [/] Add fzf-tab (Interactive Completion) <!-- id: 53 -->
     - [/] Apply "Zen Glass" WezTerm Theme <!-- id: 54 -->
+- [/] Official-ize Documentation <!-- id: 55 -->
+- [/] Refine Shell Experience (Round 4) <!-- id: 56 -->
+    - [/] Fix Autosuggestions (Visibility) <!-- id: 57 -->
+    - [/] Update Aliases (Remove l, fix others) <!-- id: 58 -->
+    - [/] Speed Up Directory Load (Remove zstats) <!-- id: 59 -->
+    - [/] Speed Up Directory Load (Remove zstats) <!-- id: 59 -->
+    - [/] Add Time/Duration (Starship) <!-- id: 60 -->
+        - [/] Fix Duration Visibility (Threshold) <!-- id: 60a -->
+- [/] Refine Shell & WezTerm (Round 5) <!-- id: 61 -->
+    - [/] Fix Aliases (Kill 'l', Add 'la') <!-- id: 62 -->
+    - [/] WezTerm: Colors & Directory Logic <!-- id: 63 -->
+- [/] Restore Directory Stats (Lite Mode) <!-- id: 64 -->
+    - [/] Deep Count with Exclusions <!-- id: 65 -->
+- [/] Final Polish & Docs Sync <!-- id: 66 -->
+    - [/] Add 'lts' Alias <!-- id: 67 -->
+    - [/] Update README & Docs <!-- id: 68 -->
+    - [/] Push to Git <!-- id: 69 -->
+- [ ] Miscellaneous Fixes <!-- id: 70 -->
+    - [/] Fix WezTerm Search (Cmd+F) <!-- id: 71 -->
+    - [/] Fix Search Paste (Cmd+V) <!-- id: 72 -->
+    - [/] Fix zen-save & dfsync.json <!-- id: 73 -->
+    - [/] Git Commit & Push <!-- id: 74 -->
