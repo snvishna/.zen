@@ -1,0 +1,131 @@
+#!/bin/bash
+#  Zen Save v5.0 (Stow Edition)
+# Snapshot & Cloud Sync
+
+set -e
+
+# --- Configuration ---
+ZEN_HOME="${HOME}/.zen"
+STOW_DIR="${ZEN_HOME}/stow"
+MANIFESTS="${ZEN_HOME}/manifests"
+BREWFILE="${MANIFESTS}/Brewfile"
+NPM_LIST="${MANIFESTS}/npm_globals.txt"
+MACOS_DIR="${MANIFESTS}/macos"
+LOG_FILE="${MANIFESTS}/last_backup.log"
+
+# Binary
+BIN_SYNC="${HOME}/.local/bin/dfsync"
+
+# --- Colors ---
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# --- Help ---
+show_help() {
+    echo -e "${BLUE}Zen Save - Configuration Snapshot${NC}"
+    echo -e "Usage: zen-save [OPTIONS]"
+    echo -e "  --all       Snapshot everything (Brew, NPM, VS Code, Apps, Defaults)."
+    echo -e "  --sync      Push to cloud after snapshotting."
+    echo -e "  --local     Snapshot only (Skip cloud sync)."
+    echo -e "  --help      Show this help."
+    exit 0
+}
+
+# --- Snapshot Functions ---
+dump_brew() {
+    if command -v brew &> /dev/null; then
+        echo -e "🍺 Dumping Brewfile..."
+        # 1. Standard Brewfile Dump
+        # We assume brew bundle dump works standardly. Using a temporary file to sort/filter if needed.
+        # But for robustness, we'll straight dump and overwrite.
+        brew bundle dump --force --file="$BREWFILE"
+        
+        # 2. Append VS Code extensions to Brewfile? 
+        # In previous version, logic was complex. Stow manages VSCode text file separately now.
+        # So we keep Brewfile pure for Brew.
+        
+        echo -e "${GREEN}✔︎ Brewfile updated.${NC}"
+    else
+        echo -e "${RED}[SKIP]${NC} Homebrew not found."
+    fi
+}
+
+dump_npm() {
+    if command -v npm &> /dev/null; then
+        echo -e "🟢 Dumping NPM Globals..."
+        if command -v jq &> /dev/null; then
+            npm list -g --depth=0 --json | jq -r '.dependencies | keys[]' > "$NPM_LIST"
+        else
+            npm list -g --depth=0 | grep -v '├──' | grep -v '└──' | awk '{print $2}' | cut -d@ -f1 > "$NPM_LIST"
+        fi
+        echo -e "${GREEN}✔︎ NPM list updated.${NC}"
+    fi
+}
+
+dump_vscode() {
+    local text_file="${STOW_DIR}/vscode/.config/vscode/extensions.txt"
+    if command -v code &> /dev/null; then
+        echo -e "🟣 Dumping VS Code Extensions..."
+        mkdir -p "$(dirname "$text_file")"
+        code --list-extensions > "$text_file"
+        echo -e "${GREEN}✔︎ Extensions list updated.${NC}"
+    fi
+}
+
+dump_defaults() {
+    echo -e "⚙️  Snapshotting macOS Defaults..."
+    mkdir -p "$MACOS_DIR"
+    defaults read > "${MACOS_DIR}/all_settings_bak.txt"
+    echo -e "${GREEN}✔︎ Defaults exported.${NC}"
+}
+
+run_sync() {
+    echo -e "\n${BLUE}--- ☁️  Syncing to Cloud ---${NC}"
+    if [[ -x "$BIN_SYNC" ]]; then
+        "$BIN_SYNC" push -y
+    elif command -v dfsync &> /dev/null; then
+        dfsync push -y
+    else
+        echo -e "${RED}[ERROR]${NC} dfsync not found. Cannot push."
+        exit 1
+    fi
+    echo -e "${GREEN}✔︎ Cloud Sync Complete.${NC}"
+}
+
+perform_snapshot() {
+    local do_sync="$1"
+    
+    echo "========================================"
+    echo "Zen Snapshot Started: $(date)"
+    echo "========================================"
+    
+    dump_brew
+    dump_npm
+    dump_vscode
+    dump_defaults
+
+    if [[ "$do_sync" == "true" ]]; then
+        run_sync
+    else
+        echo -e "\n${YELLOW}ℹ️  Skipping Cloud Sync.${NC}"
+    fi
+}
+
+# --- Main ---
+main() {
+    local do_sync=true
+    
+    for arg in "$@"; do
+        case $arg in
+            --local|--no-sync) do_sync=false ;;
+            --help|-h) show_help ;;
+        esac
+    done
+
+    perform_snapshot "$do_sync" | tee "$LOG_FILE"
+}
+
+main "$@"

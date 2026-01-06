@@ -1,251 +1,144 @@
-
 #  .zen
+> *The Art of Maintenance-Free macOS Automation.*
 
+**Current Status:** `v5.0` (Stow Edition)  
+**System:** macOS Sequoia+ (Apple Silicon)
 
-**The Zen Garden for macOS.**
-
-A holistic, modular, and resilient dotfiles framework designed to keep your development environment in perfect harmony.
-
-
----
-
-
-## 🧘 Philosophy
-
-
-Most dotfile setups are fragile "symlink farms" or giant monolithic scripts. **.zen** separates concerns into three distinct layers:
-
-
-1.  **Core Configs:** Pure configuration files (`.zshrc`, `starship.toml`) stored in `config/`.
-
-2.  **Manifests:** Declarative lists of what *should* be installed (`Brewfile`, `npm_globals.txt`, `extensions.txt`).
-
-3.  **Automation:** Smart scripts (`zen-load`, `zen-save`) that enforce state without breaking things.
-
-
-It integrates seamlessly with **[dfsync](https://github.com/snvishna/dotfilesync)** for secure, cloud-based synchronization of critical secrets and portable configs.
-
+`.zen` is a highly opinionated, "zero-friction" dotfiles framework designed to bootstrap a fresh Mac into a powerhouse development machine in minutes. It prioritizes **automation**, **idempotency**, and **clean architecture**.
 
 ---
 
+## 🚀 Quick Start
 
-## 📂 Structure
-
-
-```text
-
-~/.zen
-
-├── bin/                 # The brain (automation scripts)
-
-│   ├── zen-load         # Restores environment (Idempotent installer)
-
-│   └── zen-save         # Snapshots current state to manifests
-
-├── config/              # The body (actual config files)
-
-│   ├── zsh/             # Shell configuration
-
-│   ├── wezterm/         # Terminal emulator settings
-
-│   ├── vscode/          # VS Code settings & keybindings
-
-│   └── macos/           # System defaults (defaults write ...)
-
-├── manifests/           # The memory (declarative lists)
-
-│   ├── Brewfile         # Homebrew formulas & casks
-
-│   ├── npm_globals.txt  # Node.js global packages
-
-│   └── extensions.txt   # VS Code extensions list
-
-└── launchd/             # Auto-backup agents
-
-```
-
-
----
-
-
-## 🚀 Getting Started
-
-
-### Prerequisites
-
-* **macOS** (Latest or recent version)
-
-* **Git**
-
-
-### Installation (Bootstrapping)
-
-
-1.  Clone this repository to your home directory:
-
-    ```bash
-
-    git clone https://github.com/snvishna/.zen.git ~/.zen
-
-    ```
-
-
-2.  Run the **Zen Load** utility to hydrate your system:
-
-    ```bash
-
-    ~/.zen/bin/zen-load --all
-
-    ```
-
-
-This command will:
-
-1.  **Link:** Symlink all configs to their correct locations (`~/.config`, `~/.zshrc`, etc).
-
-2.  **Install:** Homebrew packages, Node globals, VS Code extensions, and `dfsync`.
-
-3.  **Configure:** Apply macOS system defaults and setup auto-backup hooks.
-
-
----
-
-
-## 🧠 The Zen Stack
-
-
-This environment is opinionated. It is built for **speed**, **keyboard-centric navigation**, and **aesthetic consistency**.
-
-
-### 1. The System Layer ("Ludicrous Speed")
-
-The included `defaults.sh` script transforms macOS behavior:
-
-* **Input:** Key repeat rates are pushed beyond System Settings limits (`InitialKeyRepeat 10`, `KeyRepeat 3`) for instant cursor movement. "Press and Hold" for accents is disabled in favor of key repetition.
-
-* **Trackpad:** Natural scrolling is **disabled** (standard direction enforced). Three-finger drag is enabled.
-
-* **UI:** Window animations are disabled for "snappy" response times.
-
-
-### 2. The Terminal Layer
-
-We bypass Terminal.app/iTerm2 in favor of **WezTerm**:
-
-* **Renderer:** Uses `WebGpu` for 120FPS performance.
-
-* **Aesthetics:** "Catppuccin Mocha" theme with custom Neon Green foreground (`#a6e3a1`) and "Frosted Glass" transparency.
-
-* **Keybindings:** Re-mapped to behave like a tiling window manager (Split/Move panes via `CMD + Arrow/d`).
-
-* **Shell:** Zsh + Starship prompt (auto-detects project context like Node/Rust/Docker versions).
-
-
-### 3. The Interface Layer
-
-We replace native window management with faster alternatives:
-
-* **Raycast:** Replaces Spotlight. Scriptable launcher for apps, math, and system commands.
-
-* **Rectangle:** Adds Windows-style window snapping (halves, thirds, maximize) via keyboard.
-
-* **AltTab:** Brings Windows-style `Alt+Tab` window switching (with previews) to macOS.
-
-* **Ice:** Hides menu bar clutter.
-
-
-### 4. The Dev Layer
-
-* **Editors:** VS Code (Catppuccin theme, AI-heavy setup with Copilot) + Neovim.
-
-* **Runtime:** `nvm` for managing multiple Node.js versions.
-
-* **Tools:** `ripgrep` (fast search), `jq` (JSON parsing), `fzf` (fuzzy finding).
-
-* **AI:** `Kiro` (Agent-centric IDE).
-
-
----
-
-
-## 🛠 Usage
-
-
-### `zen-load` (Restore)
-
-Use this when pulling changes from git or setting up a new machine.
-
-
-* **Fast Sync (Symlinks only):**
-
-    ```bash
-
-    zen-load
-
-    ```
-
-* **Full Install (Apps, Brew, Defaults):**
-
-    ```bash
-
-    zen-load --all
-
-    ```
-
-* **Check for Conflicts (Dry Run):**
-
-    ```bash
-
-    zen-load --check
-
-    ```
-
-* **Update `dfsync` binary:**
-
-    ```bash
-
-    zen-load --dfsync --force
-
-    ```
-
-
-### `zen-save` (Snapshot)
-
-Use this before committing changes. It dumps your *current* system state into the `manifests/` directory.
-
+### Bootstrap a Fresh Mac
+One command to rule them all. Installs Homebrew, Stow, Fonts, Apps, and links all configurations.
 
 ```bash
+# Clone to ~/.zen
+git clone https://github.com/snvishna/.zen.git ~/.zen
 
-zen-save
-
+# Run the Orchestrator
+~/.zen/stow/bin/.local/bin/zen-load --all
 ```
 
-* Updates `Brewfile` from currently installed formulas.
-
-* Updates `npm_globals.txt`.
-
-* Updates `extensions.txt` from VS Code.
-
-* *Note: This runs automatically every night via `launchd`.*
-
+### Daily Usage
+- **Update/Relink Configs:** `zen-load`
+- **Snapshot System:** `zen-save --all`
+- **Verify Health:** `zen-load --check`
 
 ---
 
+## 🧘 Architecture & Philosophy
 
-## ☁️ Cloud Sync (dfsync)
+This repository solves the two hardest problems in dotfile management: **Placement** and **Transport**.
 
+### 1. Placement: GNU Stow
+We use **GNU Stow** to manage symlinks. Instead of a complex shell script trying to guess where files go, we use a declarative directory structure.
+- **Source:** `~/.zen/stow/package/path/to/file`
+- **Target:** `~/path/to/file`
 
-This repo manages the *files*, but **dfsync** manages the *syncing* of those files to a private GitHub Gist (useful for secrets or portable configs).
+**Directory Structure:**
+```text
+~/.zen
+├── stow/               # The "Packages"
+│   ├── zsh/            # -> links to ~/.zshrc
+│   ├── wezterm/        # -> links to ~/.config/wezterm
+│   ├── bin/            # -> links to ~/.local/bin
+│   └── vscode/         # -> links to ~/.config/vscode
+├── manifests/          # The "Database"
+│   ├── Brewfile        # All apps and CLIs
+│   └── npm_globals.txt # Node packages
+└── bin/                # (Symlinked) Orchestration scripts
+```
 
-
-* **Push changes to Gist:** `dfsync push`
-
-* **Pull changes from Gist:** `dfsync pull`
-
+### 2. Transport: dfsync
+We distinguish between **Public Structure** and **Private Data**.
+- **Public (.zen):** This Git repo. Contains the *machinery* and *structure*.
+- **Private (dfsync):** Contains your *tokens*, *secrets*, and *private env vars*.
+- `dfsync` (included in `bin/`) syncs these secrets from a private GitHub Gist, keeping this repo clean and shareable.
 
 ---
 
+## 🛠 The Stack
 
-## 📜 License
+### Shell Environment (Zsh + Zim + Starship)
+We use a layered approach for a blazing fast shell:
+1.  **Zsh:** The base shell.
+2.  **Zim:** A framework faster than Oh-My-Zsh. We use `zimfw` to compile modules locally in `~/.zim`, keeping the repo clean.
+3.  **Starship:** The prompt. Minimalist, fast, and informative (Git status, Node version, Rust version, etc.).
 
-MIT
+### Terminal: WezTerm
+GPU-accelerated, Lua-configured terminal.
+- **Font:** JetBrains Mono Nerd Font (Auto-installed by `zen-load`).
+- **Key Features:**
+    - `Cmd+K`: Clear scrollback.
+    - `Cmd+F`: Search buffer.
+    - `Cmd+T`: New tab.
+    - **Copy Mode (`Cmd+Shift+Space`)**: Vim-like text selection and copying without a mouse.
+
+### Apps & CLIs (Homebrew)
+All dependencies are managed via `manifests/Brewfile`.
+
+#### Core Utilities
+| Tool | Replacement For | Why? |
+| :--- | :--- | :--- |
+| **`starship`** | Prompt | Instant git status, contextual info, Rust-based speed. |
+| **`zoxide`** | `cd` | Jumps to directories by name/frequency (`z project`). |
+| **`eza`** | `ls` | Colors, icons, git integration, tree view. |
+| **`bat`** | `cat` | Syntax highlighting, line numbers, git modifications. |
+| **`fd`** | `find` | Faster, ignores `.git` automatically, simple syntax. |
+| **`ripgrep`** | `grep` | The fastest text searcher in the world. |
+| **`fzf`** | `Ctrl+R` | Fuzzy finder for history, files, and processes. |
+| **`trash`** | `rm` | Moves files to macOS Trash instead of permanent deletion. |
+| **`tldr`** | `man` | Practical examples instead of long manuals. |
+| **`btop`** | `top` | Beautiful, clickable system monitor. |
+
+#### GUI Applications
+- **Raycast:** Spotlight on steroids. Scriptable launcher, clipboard manager, snippet host.
+- **Rectangle:** Window snapping (`Ctrl+Opt+Arrows`).
+- **Stats:** Menu bar system monitor (CPU/RAM/Net).
+- **VS Code:** Configured with `catppuccin` theme and key extensions (synced via `stow/vscode`).
+
+---
+
+## 🔧 Scripts
+
+### `zen-load` (The Orchestrator)
+The brain of the operation.
+- **What it does:**
+    1.  Checks/Installs **Homebrew**.
+    2.  Installs **Stow** and **Fonts** (auto-copies to `~/Library/Fonts`).
+    3.  Runs `stow` to link all configurations.
+    4.  Runs `brew bundle` to install apps.
+    5.  Fixes macOS "Quarantine" attribute on new apps.
+    6.  Sets up **Zim** and **dfsync**.
+- **Usage:** `zen-load --all` (Full bootstrap) or `zen-load` (Refresh links).
+
+### `bin/zen-save` (The Snapshotter)
+- **What it does:**
+    1.  Dumps current Brew installs to `manifests/Brewfile`.
+    2.  Dumps VS Code extensions to `stow/vscode/.../extensions.txt`.
+    3.  Dumps macOS `defaults` to `manifests/macos/`.
+- **Usage:** `zen-save` (Snapshot) or `zen-save --sync` (Snapshot + Cloud Push).
+
+---
+
+## ⌨️ Zen Aliases
+Your `.zshrc` is packed with "Zen" aliases for speed.
+
+| Alias | Command | Description |
+| :--- | :--- | :--- |
+| `ha` | `fzf`... | **Help Alias:** Fuzzy search all aliases by description. |
+| `z` | `zoxide` | Smart directory jump. |
+| `ll` | `eza ...` | List files with details and git status. |
+| `..` | `cd ..` | Go up one level. |
+| `gp` | `git push` | Git Push. |
+| `gd` | `delta` | Beautiful side-by-side diffs. |
+| `ft` | `rg` | **Find Text:** Search inside files. |
+| `ff` | `fd` | **Find File:** Search for filenames. |
+| `cpd` | `pbcopy` | Copy current directory path. |
+| `mkcd`| `mkdir && cd` | Make directory and enter it. |
+
+---
+
+> Built with 🧘 by Shankar.

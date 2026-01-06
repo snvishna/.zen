@@ -1,2 +1,14 @@
+AltTab.app
+Android File Transfer.app
+Firefox Developer Edition.app
 Ice.app
+KeyCastr.app
+Kiro CLI.app
+Kiro.app
+Nightfall.app
+Raycast.app
+Rectangle.app
+Stats.app
+Visual Studio Code.app
+WezTerm.app
 WhatsApp.app
