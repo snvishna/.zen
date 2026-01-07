@@ -1,7 +1,15 @@
 #  .zen
 > *The Art of Maintenance-Free macOS Automation.*
 
-### Workflow
+![Zen Banner](https://img.shields.io/badge/Status-Stable-success) ![macOS](https://img.shields.io/badge/System-macOS_Sequoia-black) ![License](https://img.shields.io/badge/License-MIT-blue)
+
+**.zen** is an opinionated, privacy-first dotfiles framework designed to bootstrap a fresh Mac into a powerhouse development machine in minutes. It separates **Public Configuration** (this repo) from **Private State** (your Gist), giving you the best of open-source sharing and secure personal backup.
+
+---
+
+## ⚡️ The Workflow
+How does `zen-load` orchestrate your setup? Here is the decision tree it follows:
+
 ```mermaid
 flowchart TD
     Start([Start zen-load]) --> Sudo{Sudo Auth}
@@ -49,45 +57,76 @@ flowchart TD
     class Init,CheckBrew,InstallBrew,CheckStow,InstallStow,InstallDF,Resolve auto
 ```
 
-**Current Status:** `v2.1.0` (Stow Edition + Zen Glass)  
-**System:** macOS Sequoia+ (Apple Silicon)
-
-`.zen` is a highly opinionated, "zero-friction" dotfiles framework designed to bootstrap a fresh Mac into a powerhouse development machine in minutes.
-
 ---
 
-## 📚 Documentation
-We treat documentation as code. Comprehensive guides are located in the `docs/` directory:
+## 🌟 Why .zen?
 
-- **[Setup Guide & Manual](docs/manuals/setup_guide.md)**: Full walkthrough of features, keybindings (WezTerm/Zsh), and installation.
-- **[Architecture Spec](docs/specs/v2_architecture.md)**: Deep dive into the Stow structure, `zen-load` logic, and design philosophy.
-- **[Project Tracker](docs/project_tracker.md)**: Current roadmap and task history.
+### 1. Zero Friction, Full Control
+Unlike massive Ansible playbooks or opaque scripts, `.zen` uses **GNU Stow**. Your config files live in `~/.zen/stow/` and are symlinked to their target locations.
+*   **Want to change a config?** Edit it properly in `~/.zen`.
+*   **Want to remove a package?** `stow -D package`.
+*   **Conflict?** `zen-load` automatically detects and backs up existing files before linking.
+
+### 2. Hybrid Cloud Sync (dfsync)
+Most dotfiles repos expose your secrets or force you to use a separate private repo.
+**.zen** uses a hybrid approach:
+*   **Public Repo**: Contains templates, scripts, generic configs (`.zshrc`, `wezterm.lua`).
+*   **Private Gist**: Contains **YOUR** specific overrides and secrets (API keys, private env vars).
+*   **The Magic**: `zen-load` intelligently merges them. It pulls your private state from Gist (via `dfsync`) *over* the public templates, then symlinks the result.
+
+### 3. Modular & Interactive
+`zen-load` is not "all-or-nothing". It asks you what you want to install:
+*   📦 **Shell Engine**: Zsh, Starship, Git, Binaries.
+*   💻 **Terminal**: WezTerm (GPU-accelerated, Lua-configured).
+*   📝 **Editor**: VS Code (Settings, Keybindings, Extensions).
+*   🍎 **System**: macOS Defaults, Dock layout, Finder tweaks.
 
 ---
 
 ## 🚀 Quick Start
 
-### Bootstrap a Fresh Mac
+### 1. Clone & Bootstrap
 ```bash
-# Clone to ~/.zen
 git clone https://github.com/snvishna/.zen.git ~/.zen
-
-# Run the Orchestrator
 ~/.zen/stow/bin/.local/bin/zen-load
 ```
 
-### Daily Usage
-- **Update/Relink Configs:** `zen-load`
-- **Snapshot System:** `zen-save`
+### 2. The Setup Wizard
+`zen-load` will launch an interactive wizard:
+1.  **Dependencies**: Automatically installs Homebrew and Stow if missing.
+2.  **dFsync**: Downloads the latest cloud sync tool.
+3.  **Restore**: Asks for your Gist ID (optional).
+    *   *New User?* Leave blank. A new Gist will be created when you first push.
+    *   *Existing User?* Enter ID. It will pull your private configs.
+4.  **Modules**: Prompt-by-prompt installation of Shell, Terminal, Editor, and System tweaks.
+
+### 3. Daily Workflow
+*   **Made changes?**
+    ```bash
+    zen-save  # Snapshots current state & pushes to Gist
+    ```
+*   **New machine?**
+    ```bash
+    zen-load  # Pulls from Gist & restores environment
+    ```
 
 ---
 
-## 🔥 Key Features (v2.1)
-- **Zen Glass Terminal**: WezTerm with 90% opacity, blur, and "Editor-like" keybindings (`Cmd+C/V`, Type-to-Replace).
-- **Smart Shell**: Zsh + Starship with autosuggestions, interactive completion (`fzf-tab`), and "Best of Both Worlds" history.
-- **Deep Stats**: Instant `cd` with `zstats` lite (shows item count + recursive depth on demand).
-- **Automation**: `zen-load` handles everything from Homebrew to Font installation.
+## 🔥 Features Under the Hood
+
+| Feature | Description |
+| :--- | :--- |
+| **Zen Glass** | Custom WezTerm config with 90% opacity, blur, and "Editor-like" bindings (`Cmd+C/V`). |
+| **Smart Shell** | Zsh + Starship with autosuggestions, `fzf-tab` completion, and localized history. |
+| **Auto-Heal** | `zen-save` automatically snapshots your installed apps (`Brewfile`, `installed_apps.txt`) and macOS defaults. |
+| **Conflict-Free** | Robust conflict resolution moves old config files to `~/.zen/graveyard/` instead of breaking. |
+| **Rolling Release** | `zen-load` always fetches the latest stable `dfsync` binary to ensure compatibility. |
 
 ---
 
-> Populated by **Antigravity**.
+## 📂 Documentation
+*   **[Setup Guide](docs/manuals/setup_guide.md)**: Detailed installation & customization.
+*   **[Architecture](docs/specs/v2_architecture.md)**: Deep dive into Stow & Symlinks.
+*   **[Tracker](docs/project_tracker.md)**: Roadmap & Changelog.
+
+> *Maintained by the .zen team.*
