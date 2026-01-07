@@ -234,34 +234,27 @@ setup_fonts() {
 
 
 install_dfsync() {
-    local force_update="$1"
+    local force_update="$1" # Ignored now, we always update
     local dfsync_args="$2"
-    echo -e "\n--- ☁️  Installing/Configuring dfsync ---"
+    echo -e "\n--- ☁️  Installing/Updating dfsync ---"
     local bin_path="${HOME}/.local/bin/dfsync"
     local installed=false
 
-    if [[ ! -x "$bin_path" || "$force_update" == "true" ]]; then
-        # User requested ALWAYS fetch latest version (Self-Update)
-        # We perform this check for every run to ensure strict version compliance.
-        echo -e "Downloading latest dfsync..."
-        if curl -fsSL "$DFSYNC_URL" -o "$bin_path" 2>/dev/null; then
-            chmod +x "$bin_path"
-            if head -n 1 "$bin_path" | grep -q "#!"; then
-                echo -e "${GREEN}✔︎ dfsync binary updated.${NC}"
-                installed=true
-            else
-                echo -e "${RED}[ERROR]${NC} Invalid download."
-                rm "$bin_path"
-                return
-            fi
+    # Always fetch latest version to ensure consistency
+    echo -e "Downloading latest dfsync..."
+    if curl -fsSL "$DFSYNC_URL" -o "$bin_path" 2>/dev/null; then
+        chmod +x "$bin_path"
+        if head -n 1 "$bin_path" | grep -q "#!"; then
+            echo -e "${GREEN}✔︎ dfsync updated to latest.${NC}"
+            installed=true
         else
-            echo -e "${RED}[ERROR]${NC} Download failed. Using existing binary if available."
-            [[ -x "$bin_path" ]] && installed=true
+            echo -e "${RED}[ERROR]${NC} Invalid download."
+            rm "$bin_path"
+            return
         fi
     else
-        # Fallback if somehow logic skips (shouldn't happen with user request)
-        echo -e "${YELLOW}[SKIP]${NC} dfsync present."
-        installed=true
+        echo -e "${RED}[ERROR]${NC} Download failed. Using existing binary if available."
+        [[ -x "$bin_path" ]] && installed=true
     fi
 
     if [[ "$installed" == "true" ]]; then
