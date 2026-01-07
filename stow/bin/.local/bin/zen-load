@@ -109,48 +109,69 @@ backup_file() {
 }
 
 resolve_conflicts() {
-    echo -e "\n--- ⚔️  Resolving Conflicts ---"
+    local pkgs=("$@")
+    echo -e "\n--- ⚔️  Resolving Conflicts (Smart) ---"
     
-    # 1. zshrc
-    if [[ -f "${HOME}/.zshrc" && ! -L "${HOME}/.zshrc" ]]; then
-        backup_file "${HOME}/.zshrc"
-    fi
-    # 1b. zimrc (Consolidate to zsh package)
-    if [[ -f "${HOME}/.zimrc" && ! -L "${HOME}/.zimrc" ]]; then
-        backup_file "${HOME}/.zimrc"
-    fi
+    # If no specific packages passed, do global check (legacy or all)
+    # But now we call this per-module usually? 
+    # Actually main calls it once globally with no args. Let's fix that too.
+    # The global call in main should perhaps be removed or iterate all.
+    # For now, let's make it recursive given a list, or default to all if empty.
     
-    # 2. gitconfig
-    if [[ -f "${HOME}/.gitconfig" && ! -L "${HOME}/.gitconfig" ]]; then
-        backup_file "${HOME}/.gitconfig"
+    local candidates=("${pkgs[@]}")
+    if [[ ${#candidates[@]} -eq 0 ]]; then
+        candidates=("zsh" "starship" "git" "bin" "wezterm" "vscode")
     fi
-    
-    # 3. dfsync binary (Stow link vs Real file)
-    if [[ -f "${HOME}/.local/bin/dfsync" && ! -L "${HOME}/.local/bin/dfsync" ]]; then
-        echo -e "  - Replacing local dfsync binary with Stow link..."
-        backup_file "${HOME}/.local/bin/dfsync"
-    fi
+
+    for pkg in "${candidates[@]}"; do
+        local pkg_dir="${STOW_DIR}/${pkg}"
+        if [[ -d "$pkg_dir" ]]; then
+            # Find all files in package, relative to package root
+            find "$pkg_dir" -type f | while read -r file; do
+                local rel_path="${file#$pkg_dir/}"
+                local target="${HOME}/${rel_path}"
+                
+                if [[ -e "$target" || -L "$target" ]]; then
+                    # Check if it's ALREADY the correct link
+                    # If it's a link and points to the right file, skip.
+                    if [[ -L "$target" ]]; then
+                        local link_target=$(readlink "$target")
+                        # We accept it if it points to inside ZEN_HOME
+                        if [[ "$link_target" == *".zen"* && "$link_target" == *"$pkg"* ]]; then
+                            continue
+                        fi
+                    fi
+                    
+                    # If we are here, it's a conflict (real file, or wrong link)
+                    echo -e "  - Conflict: $target"
+                    backup_file "$target"
+                fi
+            done
+        fi
+    done
 }
 
 run_stow_packages() {
     local pkgs=("$@")
     echo -e "\n--- 📦 Stowing Packages: ${pkgs[*]} ---"
     
+    # 1. Pre-emptively clean conflicts for THESE packages
+    resolve_conflicts "${pkgs[@]}"
+    
     local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
     if [[ "$CHECK_MODE" == "true" ]]; then
         stow_args+=("-n")
     else
-        # Resolve conflicts for these specific packages?
-        # For simplicity, we run the global resolve_conflicts once at start
-        # or we just let Stow fail/warn if we didn't resolve.
-        # Existing resolve_conflicts covers zshrc, gitconfig, dfsync only.
+        # Force stow has no effect on conflicts unless --adopt, but we solved conflicts above.
         :
     fi
     
     for pkg in "${pkgs[@]}"; do
         if [[ -d "${STOW_DIR}/${pkg}" ]]; then
             echo -e "  - Stowing ${pkg}..."
-            stow -R "${stow_args[@]}" "$pkg" 2>&1 | sed 's/^/    /'
+            if ! stow -R "${stow_args[@]}" "$pkg" 2>&1 | sed 's/^/    /'; then
+                echo -e "${RED}[ERROR] Stow failed for $pkg.${NC}"
+            fi
         else
             echo -e "${YELLOW}[WARN]${NC} Package $pkg not found in stow dir."
         fi
@@ -246,8 +267,19 @@ install_dfsync() {
     if [[ "$installed" == "true" ]]; then
         echo -e "Running dfsync setup..."
         "$bin_path" setup $dfsync_args
-        echo -e "Running dfsync pull..."
-        "$bin_path" pull $dfsync_args
+        
+        # Check if we have a valid Gist ID now
+        local gist_id_check
+        if [[ -f "${HOME}/.dfsync.json" ]]; then
+            gist_id_check=$(grep "gist_id" "${HOME}/.dfsync.json" | cut -d'"' -f4)
+        fi
+        
+        if [[ -n "$gist_id_check" ]]; then
+            echo -e "Running dfsync pull..."
+            "$bin_path" pull $dfsync_args || echo -e "${YELLOW}[WARN] Pull failed (possibly empty Gist). Continuing...${NC}"
+        else
+            echo -e "${YELLOW}[SKIP] No Gist ID configured. Skipping initial pull.${NC}"
+        fi
     fi
 }
 
@@ -335,7 +367,7 @@ main() {
         check_stow
         # Ensure dfsync is available
         install_dfsync "false" "$dfsync_flags"
-        resolve_conflicts
+        # Removed global resolve_conflicts here; it is now called inside run_stow_packages per module
     fi
 
     # 2. Shell Configuration (zsh, starship, git, bin)
