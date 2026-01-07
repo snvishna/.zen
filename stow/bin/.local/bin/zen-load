@@ -132,14 +132,6 @@ resolve_conflicts() {
     fi
 }
 
-run_stow() {
-    local mode="$1"
-    echo -e "\n--- 📦 Stowing Packages ---"
-    
-    local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
-    [[ "$mode" == "check" ]] && stow_args+=("-n")
-    
-    # Packages to stow (Updated: Removed rectangle, finder, launchd, zim)
 run_stow_packages() {
     local pkgs=("$@")
     echo -e "\n--- 📦 Stowing Packages: ${pkgs[*]} ---"
