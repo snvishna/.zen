@@ -125,47 +125,38 @@ resolve_conflicts() {
 
     for pkg in "${candidates[@]}"; do
         local pkg_dir="${STOW_DIR}/${pkg}"
-        echo "DEBUG: Scanning package $pkg at $pkg_dir"
         
         if [[ -d "$pkg_dir" ]]; then
-            # Use arrays to handle finding files safer
+            # Safe array-based find loop to handle all filenames
             local files=()
             while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" -not -path '*/.*' \( -type f -o -type l \) -print0)
             
-            echo "DEBUG: Found ${#files[@]} items in $pkg"
+            # echo "DEBUG: Found ${#files[@]} items in $pkg"
             
             for file in "${files[@]}"; do
-                # Get relative path by stripping pkg_dir prefix and leading slash
+                # Get relative path
                 local rel_path="${file#$pkg_dir}"
                 rel_path="${rel_path#/}"
                 
-                # If rel_path is empty (shouldn't happen with -type f), skip
                 if [[ -z "$rel_path" ]]; then continue; fi
 
-                # Target in HOME
                 local target="${HOME}/${rel_path}"
-                # echo "  Checking: $target"
                 
-                # Check if target exists (file, dir, or symlink)
+                # Check for conflicts
                 if [[ -e "$target" || -L "$target" ]]; then
-                    # Check if it is ALREADY a Stow link to the correct place
                     if [[ -L "$target" ]]; then
                         local link_target=$(readlink "$target")
-                        # If it points to our CURRENT stow structure, it's good.
                         if [[ "$link_target" == *".zen/stow/$pkg/$rel_path"* ]]; then
                             continue
                         fi
-                        echo "  - Invalid symlink found: $target -> $link_target"
+                        echo "  - Invalid symlink: $target -> $link_target"
                     else
-                        echo "  - Blocking file found: $target"
+                        echo "  - Blocking file: $target"
                     fi
                     
-                    # If we are here, it is a blocker.
                     backup_file "$target"
                 fi
             done
-        else
-            echo "DEBUG: Package dir $pkg_dir does not exist!"
         fi
     done
 }
@@ -277,6 +268,9 @@ install_dfsync() {
     fi
 
     if [[ "$installed" == "true" ]]; then
+        # Force config path to project standard to prevent [y] prompt issue
+        "$bin_path" config path "${HOME}/.zen/dfsync.json" >/dev/null 2>&1
+        
         echo -e "Running dfsync setup..."
         "$bin_path" setup $dfsync_args
         
