@@ -126,24 +126,29 @@ resolve_conflicts() {
     for pkg in "${candidates[@]}"; do
         local pkg_dir="${STOW_DIR}/${pkg}"
         if [[ -d "$pkg_dir" ]]; then
-            # Find all files in package, relative to package root
-            find "$pkg_dir" -type f | while read -r file; do
+            # Find files (and symlinks) recursively in the package
+            # exclude hidden .git or DS_Store if any (not strictly needed for stow pkgs but safe)
+            # Use -print to get file list
+            find "$pkg_dir" -not -path '*/.*' -type f -o -type l | while read -r file; do
+                # Get relative path by stripping pkg_dir prefix
                 local rel_path="${file#$pkg_dir/}"
+                # Target in HOME
                 local target="${HOME}/${rel_path}"
                 
+                # Check if target exists (file, dir, or symlink)
                 if [[ -e "$target" || -L "$target" ]]; then
-                    # Check if it's ALREADY the correct link
-                    # If it's a link and points to the right file, skip.
+                    # Check if it is ALREADY a Stow link to the correct place
                     if [[ -L "$target" ]]; then
                         local link_target=$(readlink "$target")
-                        # We accept it if it points to inside ZEN_HOME
-                        if [[ "$link_target" == *".zen"* && "$link_target" == *"$pkg"* ]]; then
+                        # If it points to our stow dir, it's good.
+                        # We verify if it points to .zen/stow
+                        if [[ "$link_target" == *".zen/stow/$pkg"* ]]; then
                             continue
                         fi
                     fi
                     
-                    # If we are here, it's a conflict (real file, or wrong link)
-                    echo -e "  - Conflict: $target"
+                    # If we are here, it is a blocker (real file, or wrong link).
+                    echo -e "  - Conflict found: $target"
                     backup_file "$target"
                 fi
             done
@@ -301,7 +306,8 @@ install_macos_defaults() {
     if [[ -f "$MACOS_SCRIPT" ]]; then
         echo "Applying defaults..."
         chmod +x "$MACOS_SCRIPT"
-        "$MACOS_SCRIPT"
+        # Suppress Safari permissions errors (Containers issue)
+        "$MACOS_SCRIPT" 2>&1 | grep -v "Could not write domain.*com.apple.Safari" || true
     fi
     
     # 4. Install Config Backup Agent (Template -> Real)
