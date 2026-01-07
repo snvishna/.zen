@@ -125,11 +125,16 @@ resolve_conflicts() {
 
     for pkg in "${candidates[@]}"; do
         local pkg_dir="${STOW_DIR}/${pkg}"
+        echo "DEBUG: Scanning package $pkg at $pkg_dir"
+        
         if [[ -d "$pkg_dir" ]]; then
-            # Find files (and symlinks) recursively in the package
-            # exclude hidden .git or DS_Store if any (not strictly needed for stow pkgs but safe)
-            # We explicitly output file names to ensure loop runs
-            while IFS= read -r file; do
+            # Use arrays to handle finding files safer
+            local files=()
+            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" -not -path '*/.*' \( -type f -o -type l \) -print0)
+            
+            echo "DEBUG: Found ${#files[@]} items in $pkg"
+            
+            for file in "${files[@]}"; do
                 # Get relative path by stripping pkg_dir prefix and leading slash
                 local rel_path="${file#$pkg_dir}"
                 rel_path="${rel_path#/}"
@@ -139,6 +144,7 @@ resolve_conflicts() {
 
                 # Target in HOME
                 local target="${HOME}/${rel_path}"
+                # echo "  Checking: $target"
                 
                 # Check if target exists (file, dir, or symlink)
                 if [[ -e "$target" || -L "$target" ]]; then
@@ -149,15 +155,17 @@ resolve_conflicts() {
                         if [[ "$link_target" == *".zen/stow/$pkg/$rel_path"* ]]; then
                             continue
                         fi
-                        # Debug info
-                        echo "  - Removing Invalid Link: $target -> $link_target"
+                        echo "  - Invalid symlink found: $target -> $link_target"
+                    else
+                        echo "  - Blocking file found: $target"
                     fi
                     
                     # If we are here, it is a blocker.
-                    echo -e "  - Conflict found: $target"
                     backup_file "$target"
                 fi
-            done < <(find "$pkg_dir" -not -path '*/.*' \( -type f -o -type l \))
+            done
+        else
+            echo "DEBUG: Package dir $pkg_dir does not exist!"
         fi
     done
 }
