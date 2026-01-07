@@ -24,7 +24,53 @@ BLUE='\033[0;34m'
 GRAY='\033[0;90m'
 NC='\033[0m'
 
-# --- Help Menu ---
+# --- 0. Helpers ---
+prompt_user() {
+    local msg="$1"
+    if [[ "$FORCE_ALL" == "true" ]]; then return 0; fi
+    if [[ "$CHECK_MODE" == "true" ]]; then return 0; fi
+    read -p "$msg [y/N] " -n 1 -r; echo ""
+    [[ $REPLY =~ ^[Yy]$ ]]
+}
+
+dfsync_activate() {
+    local pattern="$1"
+    local bin="${HOME}/.local/bin/dfsync"
+    local catalog="${ZEN_HOME}/dfsync.json"
+    
+    if [[ ! -x "$bin" ]]; then return 0; fi
+    
+    # 1. Initialize local config if needed
+    if [[ ! -f "${HOME}/.dfsync.json" ]]; then
+        # Grab Gist ID from catalog
+        local gid=$(grep -E '"gist_id":' "$catalog" | cut -d'"' -f4)
+        echo "{\"gist_id\": \"$gid\", \"files\": []}" > "${HOME}/.dfsync.json"
+    fi
+    
+    # 2. Extract matching files from catalog (grep regex)
+    local files=$(grep -E "$pattern" "$catalog" | sed 's/^[[:space:]]*"//;s/",\?//' | tr -d ' ')
+    
+    if [[ -n "$files" ]]; then
+        echo "  - Registering cloud configs for pattern: '$pattern'"
+        
+        while IFS= read -r line; do
+             if [[ -n "$line" ]]; then
+                 if [[ "$CHECK_MODE" == "true" ]]; then
+                     echo "    [Dry Run] Would track: $line"
+                 else
+                     # Track file (Adds to ~/.dfsync.json)
+                     "$bin" track "$line" >/dev/null 2>&1
+                 fi
+             fi
+        done <<< "$files"
+        
+        # 3. Pull (Using standard interface, pulls everything in ~/.dfsync.json)
+        if [[ "$CHECK_MODE" == "false" ]]; then
+             "$bin" pull
+        fi
+    fi
+}
+
 show_help() {
     echo -e "${BLUE}Zen Load - Environment Restorer${NC}"
     echo -e "Usage: zen-load [OPTIONS]"
@@ -94,21 +140,22 @@ run_stow() {
     [[ "$mode" == "check" ]] && stow_args+=("-n")
     
     # Packages to stow (Updated: Removed rectangle, finder, launchd, zim)
-    local packages=(
-        "zsh"
-        "wezterm"
-        "starship"
-        "vscode"
-        "git"
-        "bin"
-    )
+run_stow_packages() {
+    local pkgs=("$@")
+    echo -e "\n--- 📦 Stowing Packages: ${pkgs[*]} ---"
     
-    # Resolve conflicts before attempting to stow
-    if [[ "$mode" != "check" ]]; then
-        resolve_conflicts
+    local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
+    if [[ "$CHECK_MODE" == "true" ]]; then
+        stow_args+=("-n")
+    else
+        # Resolve conflicts for these specific packages?
+        # For simplicity, we run the global resolve_conflicts once at start
+        # or we just let Stow fail/warn if we didn't resolve.
+        # Existing resolve_conflicts covers zshrc, gitconfig, dfsync only.
+        :
     fi
-
-    for pkg in "${packages[@]}"; do
+    
+    for pkg in "${pkgs[@]}"; do
         if [[ -d "${STOW_DIR}/${pkg}" ]]; then
             echo -e "  - Stowing ${pkg}..."
             stow -R "${stow_args[@]}" "$pkg" 2>&1 | sed 's/^/    /'
@@ -116,13 +163,6 @@ run_stow() {
             echo -e "${YELLOW}[WARN]${NC} Package $pkg not found in stow dir."
         fi
     done
-    
-    # Verify Critical Paths
-    if [[ "$mode" != "check" ]]; then
-        echo -e "\n--- 🔍 Path Verification ---"
-        if [[ -L "${HOME}/.zshrc" ]]; then echo -e "${GREEN}✔︎ .zshrc linked${NC}"; else echo -e "${RED}✘ .zshrc missing${NC}"; fi
-        if [[ -d "${HOME}/.config/wezterm" ]]; then echo -e "${GREEN}✔︎ WezTerm config linked${NC}"; else echo -e "${RED}✘ WezTerm config missing${NC}"; fi
-    fi
 }
 
 # --- 2. Installers ---
@@ -222,6 +262,7 @@ install_dfsync() {
 install_npm_globals() {
     echo -e "\n--- 🟢 Installing NPM Globals ---"
     if command -v npm &> /dev/null && [[ -f "$NPM_LIST" ]]; then
+        # Check if list is empty?
         grep -vE '^\s*#|^\s*$' "$NPM_LIST" | while read -r pkg; do
             npm list -g "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg")
         done
@@ -273,55 +314,68 @@ install_macos_defaults() {
 
 # --- Main Logic ---
 main() {
-    local mode="apply"
-    local do_brew=false; local do_npm=false; local do_vscode=false
-    local do_macos=false; local do_dfsync=false
-    local force_update=false
-    local dfsync_args=""
+    export CHECK_MODE="false"
+    export FORCE_ALL="false"
+    local dfsync_flags=""
 
     for arg in "$@"; do
         case $arg in
-            --check|-c)   mode="check" ;;
-            --all)        do_brew=true; do_dfsync=true; do_npm=true; do_vscode=true; do_macos=true ;;
-            --brew)       do_brew=true ;;
-            --dfsync)     do_dfsync=true ;;
-            --npm)        do_npm=true ;;
-            --vscode)     do_vscode=true ;;
-            --macos)      do_macos=true ;;
-            --force)      force_update=true ;;
-            -y)           dfsync_args+=" -y" ;;
-            -v)           dfsync_args+=" -v" ;;
+            --check|-c)   CHECK_MODE="true" ;;
+            --all)        FORCE_ALL="true" ;;
+            --force)      FORCE_ALL="true" ;;
+            -v)           dfsync_flags+=" -v" ;;
             --help|-h)    show_help ;;
         esac
     done
 
-    if [[ "$mode" == "check" ]]; then
-        echo -e "\n--- 🔍 Running Stow Conflict Check ---"
-        run_stow "check"
-        if [[ "$do_dfsync" == "true" ]]; then
-             echo -e "\n(dfsync check skipped in dry-run)"
-        fi
-    else
-        echo "--- 🚀 Applying Zen Configuration ---"
-        echo -e "${YELLOW}🔐 Zen requires admin privileges (sudo).${NC}"
+    echo "--- 🚀 Zen Load (Interactive) ---"
+    if [[ "$CHECK_MODE" == "false" ]]; then
+        echo -e "${YELLOW}🔐 Admin privileges required for some tasks.${NC}"
         sudo -v
         while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-        
-        # Resolve Conflicts First (Backup real files)
-        resolve_conflicts
-        
-        # Run Stow
-        run_stow "$mode"
-
-        # Order: Brew -> Quarantine -> dfsync -> Rest
-        [[ "$do_brew" == "true" ]]   && install_homebrew
-        [[ "$do_dfsync" == "true" ]] && install_dfsync "$force_update" "$dfsync_args"
-        [[ "$do_npm" == "true" ]]    && install_npm_globals
-        [[ "$do_vscode" == "true" ]] && install_vscode_extensions
-        [[ "$do_macos" == "true" ]]  && install_macos_defaults
+    else
+        echo -e "${BLUE}🔍 Check Mode Enabled (Dry Run)${NC}"
     fi
 
-    echo -e "\n${GREEN}✔︎ Zen Environment Processed.${NC}"
+    # 1. Boilerplate (Dependencies)
+    if [[ "$CHECK_MODE" == "false" ]]; then
+        install_homebrew_core_only
+        check_stow
+        # Ensure dfsync is available
+        install_dfsync "false" "$dfsync_flags"
+        resolve_conflicts
+    fi
+
+    # 2. Shell Configuration (zsh, starship, git, bin)
+    if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
+        dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
+        run_stow_packages "zsh" "starship" "git" "bin"
+    fi
+
+    # 3. Terminal (WezTerm)
+    if prompt_user "💻 Stow WezTerm Configuration?"; then
+        dfsync_activate "wezterm"
+        run_stow_packages "wezterm"
+        if [[ "$CHECK_MODE" == "false" ]]; then setup_fonts; fi
+    fi
+
+    # 4. Editor (VS Code)
+    if prompt_user "📝 Install VS Code Config & Extensions?"; then
+        dfsync_activate "vscode"
+        run_stow_packages "vscode"
+        if [[ "$CHECK_MODE" == "false" ]]; then install_vscode_extensions; fi
+    fi
+
+    # 5. System (macOS Defaults, Launchd, NPM?)
+    if prompt_user "🍎 Apply macOS Defaults & System Tweaks?"; then
+        dfsync_activate "Raycast|Rectangle|Recents|LaunchAgents|defaults|Brewfile|npm_globals|installed_apps"
+        if [[ "$CHECK_MODE" == "false" ]]; then 
+            install_macos_defaults
+            install_npm_globals
+        fi
+    fi
+
+    echo -e "\n${GREEN}✔︎ Zen Load Complete.${NC}"
 }
 
 main "$@"

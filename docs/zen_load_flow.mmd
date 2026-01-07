@@ -1,0 +1,59 @@
+flowchart TD
+    Start([Start zen-load]) --> Sudo{Sudo Auth}
+    Sudo -->|Success| Init[Init Dependencies]
+    Init --> CheckBrew{Brew Installed?}
+    CheckBrew -->|No| InstallBrew[Install Homebrew Core]
+    CheckBrew -->|Yes| CheckStow{Stow Installed?}
+    CheckStow -->|No| InstallStow[Brew Install Stow]
+    CheckStow -->|Yes| InstallDF[Install/Link dfsync]
+    InstallDF --> Resolve[Resolve Conflicts<br/>Backup ~/.zshrc, ~/.gitconfig]
+    
+    Resolve --> PromptShell{ Prompt: <br/>Stow Shell Env? }
+    PromptShell -->|Yes| ActivateShell[dfsync_activate<br/>zshrc, starship, git...]
+    ActivateShell --> PullShell{Confirm Pull?<br/>Overwrite Repo Files?}
+    PullShell -->|Yes| RestoreShell[Update .zen/stow/zsh/...]
+    PullShell -->|No| SkipShellRest[Keep Git Version]
+    RestoreShell --> StowShell[Stow: zsh, starship, git]
+    SkipShellRest --> StowShell
+    PromptShell -->|No| Next1
+    StowShell --> Next1[Next Module]
+
+    Next1 --> PromptWez{ Prompt: <br/>Stow WezTerm? }
+    PromptWez -->|Yes| ActivateWez[dfsync_activate<br/>wezterm.lua]
+    ActivateWez --> PullWez{Confirm Pull?}
+    PullWez -->|Yes| RestoreWez[Update .zen/stow/wezterm/...]
+    PullWez -->|No| SkipWezRest
+    RestoreWez --> StowWez[Stow: wezterm]
+    StowWez --> InstallFonts[Install Fonts]
+    PromptWez -->|No| Next2
+
+    Next2 --> PromptVS{ Prompt: <br/>Stow VS Code? }
+    PromptVS -->|Yes| ActivateVS[dfsync_activate<br/>settings, keybindings...]
+    ActivateVS --> PullVS{Confirm Pull?}
+    PullVS -->|Yes| RestoreVS[Update .zen/stow/vscode/...]
+    PullVS -->|No| SkipVSRest
+    RestoreVS --> StowVS[Stow: vscode]
+    StowVS --> InstallExt[Install Extensions]
+    PromptVS -->|No| Next3
+
+    Next3 --> PromptSys{ Prompt: <br/>Apply Defaults? }
+    PromptSys -->|Yes| ActivateSys[dfsync_activate<br/>Raycast, Rectangle, Launchd...]
+    ActivateSys --> PullSys{Confirm Pull?}
+    PullSys -->|Yes| RestoreSys[Update manifests/private/...]
+    PullSys -->|No| SkipSysRest
+    RestoreSys --> ApplyDef[defaults.sh<br/>npm globals<br/>LaunchAgents]
+    PromptSys -->|No| PromptCloud
+
+    PromptCloud{ Prompt: <br/>Full Cloud Restore? }
+    PromptCloud -->|Yes| PullAll[dfsync pull<br/>(Interactive Remainder)]
+    PromptCloud -->|No| Done
+
+    Done([Zen Load Complete])
+
+    classDef prompt fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef action fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef auto fill:#dfd,stroke:#333,stroke-width:1px;
+    
+    class Start,Done action
+    class PromptShell,PromptWez,PromptVS,PromptSys,PromptCloud prompt
+    class Init,CheckBrew,InstallBrew,CheckStow,InstallStow,InstallDF,Resolve auto
