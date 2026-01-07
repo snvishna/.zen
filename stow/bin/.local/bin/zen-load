@@ -128,10 +128,15 @@ resolve_conflicts() {
         if [[ -d "$pkg_dir" ]]; then
             # Find files (and symlinks) recursively in the package
             # exclude hidden .git or DS_Store if any (not strictly needed for stow pkgs but safe)
-            # Use -print to get file list
-            find "$pkg_dir" -not -path '*/.*' -type f -o -type l | while read -r file; do
-                # Get relative path by stripping pkg_dir prefix
-                local rel_path="${file#$pkg_dir/}"
+            # We explicitly output file names to ensure loop runs
+            while IFS= read -r file; do
+                # Get relative path by stripping pkg_dir prefix and leading slash
+                local rel_path="${file#$pkg_dir}"
+                rel_path="${rel_path#/}"
+                
+                # If rel_path is empty (shouldn't happen with -type f), skip
+                if [[ -z "$rel_path" ]]; then continue; fi
+
                 # Target in HOME
                 local target="${HOME}/${rel_path}"
                 
@@ -140,18 +145,19 @@ resolve_conflicts() {
                     # Check if it is ALREADY a Stow link to the correct place
                     if [[ -L "$target" ]]; then
                         local link_target=$(readlink "$target")
-                        # If it points to our stow dir, it's good.
-                        # We verify if it points to .zen/stow
-                        if [[ "$link_target" == *".zen/stow/$pkg"* ]]; then
+                        # If it points to our CURRENT stow structure, it's good.
+                        if [[ "$link_target" == *".zen/stow/$pkg/$rel_path"* ]]; then
                             continue
                         fi
+                        # Debug info
+                        echo "  - Removing Invalid Link: $target -> $link_target"
                     fi
                     
-                    # If we are here, it is a blocker (real file, or wrong link).
+                    # If we are here, it is a blocker.
                     echo -e "  - Conflict found: $target"
                     backup_file "$target"
                 fi
-            done
+            done < <(find "$pkg_dir" -not -path '*/.*' \( -type f -o -type l \))
         fi
     done
 }
