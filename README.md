@@ -101,14 +101,34 @@ git clone https://github.com/snvishna/.zen.git ~/.zen
 4.  **Modules**: Prompt-by-prompt installation of Shell, Terminal, Editor, and System tweaks.
 
 ### 3. Daily Workflow
-*   **Made changes?**
-    ```bash
-    zen-save  # Snapshots current state & pushes to Gist
-    ```
-*   **New machine?**
-    ```bash
-    zen-load  # Pulls from Gist & restores environment
-    ```
+#### Restoration (zen-load)
+*   **New machine?** Run `zen-load` to restore environment.
+
+#### Snapshot (zen-save)
+*   **Made changes?** Run `zen-save` to snapshot state.
+
+```mermaid
+flowchart TD
+    Start([Start zen-save]) --> Init[Init Paths & Logs]
+    Init --> DumpBrew[Dump Homebrew<br/>(Brewfile)]
+    DumpBrew --> DumpNPM[Dump NPM Globals<br/>(npm_globals.txt)]
+    DumpNPM --> DumpVS[Dump VS Code Exts<br/>(extensions.txt)]
+    DumpVS --> DumpApps[Audit /Applications<br/>(installed_apps.txt)]
+    
+    DumpApps --> DumpSys[Snapshot macOS Defaults<br/>(macos_full_dump.txt)]
+    DumpSys --> DumpPriv[Snapshot Private Configs<br/>(Raycast, Rectangle Plists)]
+    
+    DumpPriv --> Sync{Flag: --local?}
+    Sync -->|Yes| Finish([Snapshot Complete])
+    Sync -->|No| Push[dfsync push<br/>(Sync to Gist)]
+    Push --> Finish
+
+    classDef action fill:#bbf,stroke:#333,stroke-width:1px;
+    classDef decision fill:#f9f,stroke:#333,stroke-width:2px;
+    
+    class Start,Finish action
+    class Sync decision
+```
 
 ---
 
