@@ -15,9 +15,7 @@ config.font = wezterm.font_with_fallback {
   'Apple Color Emoji',
 }
 config.font_size = 14.0
-config.line_height = 1.2
-config.window_background_opacity = 0.90
-config.macos_window_background_blur = 20
+config.line_height = 0.9
 config.window_decorations = "TITLE | RESIZE" -- Keep Title Bar
 
 
@@ -29,14 +27,14 @@ config.window_padding = {
 }
 
 -- Transparency & Blur
-config.window_background_opacity = 0.7 -- Slightly less transparent for contrast
-config.macos_window_background_blur = 10
+config.window_background_opacity = 0.9 -- Slightly less transparent for contrast
+config.macos_window_background_blur = 20
 config.text_background_opacity = 1.0
 
 -- Dim inactive panes (Spotlight Mode)
 config.inactive_pane_hsb = {
-  saturation = 0.5,
-  brightness = 0.4, 
+  saturation = 0.6,
+  brightness = 0.3, 
 }
 
 -- =========================================================
