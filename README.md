@@ -74,7 +74,16 @@ Most dotfiles repos expose your secrets or force you to use a separate private r
 *   **Private Gist**: Contains **YOUR** specific overrides and secrets (API keys, private env vars).
 *   **The Magic**: `zen-load` intelligently merges them. It pulls your private state from Gist (via `dfsync`) *over* the public templates, then symlinks the result.
 
-### 3. Modular & Interactive
+### 3. Private Overrides (The Secret Sauce) 🔐
+Need to store API keys or work-specific aliases that shouldn't be in the public repo?
+.zen checks for optional **Private Overrides** that are ignored by git but synced by dfsync:
+*   **Shell**: `~/.zshrc.local` (Sourced automatically by .zshrc)
+*   **WezTerm**: `~/.config/wezterm/wezterm-private.lua` (Merged automatically)
+*   **Git**: `~/.gitconfig.local`
+
+Just create these files, and `zen-save` will back them up to your private Gist!
+
+### 4. Modular & Interactive
 `zen-load` is not "all-or-nothing". It asks you what you want to install:
 *   📦 **Shell Engine**: Zsh, Starship, Git, Binaries.
 *   💻 **Terminal**: WezTerm (GPU-accelerated, Lua-configured).

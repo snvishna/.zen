@@ -438,3 +438,9 @@ alias install-stack="zen-load"
 # Kiro CLI post block. Keep at the bottom of this file.
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
 
+# 13. PRIVATE OVERRIDES (Final Load)
+# ------------------------------------------------------------------------------
+# Load private/machine-specific configurations (API keys, work aliases, etc.)
+# This file is NOT in the .zen repo, but tracked by dfsync (Gist).
+[[ -f "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"
+
