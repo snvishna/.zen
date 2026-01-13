@@ -119,17 +119,17 @@ git clone https://github.com/snvishna/.zen.git ~/.zen
 ```mermaid
 flowchart TD
     Start([Start zen-save]) --> Init[Init Paths & Logs]
-    Init --> DumpBrew[Dump Homebrew<br/>(Brewfile)]
-    DumpBrew --> DumpNPM[Dump NPM Globals<br/>(npm_globals.txt)]
-    DumpNPM --> DumpVS[Dump VS Code Exts<br/>(extensions.txt)]
-    DumpVS --> DumpApps[Audit /Applications<br/>(installed_apps.txt)]
+    Init --> DumpBrew["Dump Homebrew<br/>(Brewfile)"]
+    DumpBrew --> DumpNPM["Dump NPM Globals<br/>(npm_globals.txt)"]
+    DumpNPM --> DumpVS["Dump VS Code Exts<br/>(extensions.txt)"]
+    DumpVS --> DumpApps["Audit /Applications<br/>(installed_apps.txt)"]
     
-    DumpApps --> DumpSys[Snapshot macOS Defaults<br/>(macos_full_dump.txt)]
-    DumpSys --> DumpPriv[Snapshot Private Configs<br/>(Raycast, Rectangle Plists)]
+    DumpApps --> DumpSys["Snapshot macOS Defaults<br/>(macos_full_dump.txt)"]
+    DumpSys --> DumpPriv["Snapshot Private Configs<br/>(Raycast, Rectangle Plists)"]
     
     DumpPriv --> Sync{Flag: --local?}
     Sync -->|Yes| Finish([Snapshot Complete])
-    Sync -->|No| Push[dfsync push<br/>(Sync to Gist)]
+    Sync -->|No| Push["dfsync push<br/>(Sync to Gist)"]
     Push --> Finish
 
     classDef action fill:#bbf,stroke:#333,stroke-width:1px;
