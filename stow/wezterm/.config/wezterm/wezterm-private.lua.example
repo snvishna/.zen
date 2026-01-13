@@ -1,0 +1,25 @@
+-- wezterm-private.lua
+-- This file is for your PRIVATE, machine-specific WezTerm settings.
+-- It is merged into the main config automatically if it exists.
+--
+-- USAGE:
+-- 1. Copy this file: cp ~/.config/wezterm/wezterm-private.lua.example ~/.config/wezterm/wezterm-private.lua
+-- 2. Add your overrides below.
+-- 3. Run 'zen-save' to back it up to your private Gist.
+
+return {
+  -- Override Color Scheme
+  -- color_scheme = 'Dracula',
+
+  -- Add SSH Domains (Work Servers)
+  -- ssh_domains = {
+  --   {
+  --     name = 'prod',
+  --     remote_address = '192.168.1.100',
+  --     username = 'admin',
+  --   },
+  -- },
+
+  -- Machine-specific Font Size
+  -- font_size = 14.0,
+}

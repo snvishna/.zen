@@ -1,0 +1,19 @@
+# .zshrc.local
+# This file is for your PRIVATE, machine-specific configurations.
+# It is sourced by .zshrc automatically if it exists.
+#
+# USAGE:
+# 1. Copy this file: cp ~/.zshrc.local.example ~/.zshrc.local
+# 2. Add your secrets/overrides below.
+# 3. Run 'zen-save' to back it up to your private Gist.
+
+# --- 1. Environment Variables (API Keys, Tokens) ---
+# export GITHUB_TOKEN="ghp_your_secret_token"
+# export OPENAI_API_KEY="sk-..."
+
+# --- 2. Work/Private Aliases ---
+# alias work="cd ~/Work/ProjectX"
+# alias ssh-prod="ssh user@production.server.com"
+
+# --- 3. Path Additions ---
+# export PATH="$HOME/private/bin:$PATH"
