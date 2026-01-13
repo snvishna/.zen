@@ -1,7 +1,7 @@
 #  .zen
 > *The Art of Maintenance-Free macOS Automation.*
 
-![Zen Banner](https://img.shields.io/badge/Status-Stable-success) ![macOS](https://img.shields.io/badge/System-macOS_Sequoia-black) ![License](https://img.shields.io/badge/License-MIT-blue)
+![Zen Banner](https://img.shields.io/badge/Status-Stable-success?style=flat-square) ![macOS](https://img.shields.io/badge/System-macOS_Sequoia-black?style=flat-square) ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
 **.zen** is an opinionated, privacy-first dotfiles framework designed to bootstrap a fresh Mac into a powerhouse development machine in minutes. It separates **Public Configuration** (this repo) from **Private State** (your Gist), giving you the best of open-source sharing and secure personal backup.
 
