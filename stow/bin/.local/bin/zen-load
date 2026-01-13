@@ -100,10 +100,8 @@ resolve_conflicts() {
         
         if [[ -d "$pkg_dir" ]]; then
             # Safe array-based find loop to handle all filenames
-            local files=()
-            # FIX: Do not use -not -path '*/.*' because it hides .zshrc!
-            # Instead, explicitly exclude .git directory and .DS_Store files.
-            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l \) -print0)
+            # FIX 2: Also include directories (-type d) to catch conflicting directory symlinks (e.g. .config/wezterm -> old repo)
+            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l -o -type d \) -print0)
             
             echo "DEBUG: Found ${#files[@]} items in $pkg"
             
@@ -120,11 +118,17 @@ resolve_conflicts() {
                 if [[ -e "$target" || -L "$target" ]]; then
                     if [[ -L "$target" ]]; then
                         local link_target=$(readlink "$target")
+                        # Check strict stow path match
+                        # We accept it if it points deeper into our specific package
                         if [[ "$link_target" == *".zen/stow/$pkg/$rel_path"* ]]; then
                             continue
                         fi
                         echo "  - Invalid symlink: $target -> $link_target"
                     else
+                        # If it's a real directory, ignore it (Stow will merge)
+                        if [[ -d "$target" && ! -L "$target" ]]; then
+                           continue
+                        fi
                         echo "  - Blocking file: $target"
                     fi
                     
