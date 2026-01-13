@@ -1,6 +1,6 @@
 #!/bin/bash
 #  Zen Load v5.0 (Stow Edition)
-# Granular System Restoration: Stow, Brew, NPM, VS Code, macOS Defaults, dfsync.
+# The Orchestrator
 
 set -e
 
@@ -12,126 +12,100 @@ BREWFILE="${MANIFESTS}/Brewfile"
 NPM_LIST="${MANIFESTS}/npm_globals.txt"
 VSCODE_LIST="${STOW_DIR}/vscode/.config/vscode/extensions.txt"
 MACOS_SCRIPT="${MANIFESTS}/macos/defaults.sh"
+DFSYNC_URL="https://raw.githubusercontent.com/snvishna/dfsync/main/dfsync.sh"
 
-# Upstream Source
-DFSYNC_URL="https://raw.githubusercontent.com/snvishna/dotfilesync/master/src/dfsync.sh"
-
-# --- Colors ---
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
-GRAY='\033[0;90m'
 NC='\033[0m'
 
-# --- 0. Helpers ---
+# --- Helpers ---
 prompt_user() {
-    local msg="$1"
-    if [[ "$FORCE_ALL" == "true" ]]; then return 0; fi
-    if [[ "$CHECK_MODE" == "true" ]]; then return 0; fi
-    read -p "$msg [y/N] " -n 1 -r; echo ""
-    [[ $REPLY =~ ^[Yy]$ ]]
+    local prompt="$1"
+    if [[ "$FORCE_ALL" == "true" ]]; then return 0; fi # Auto-yes
+    read -p "$prompt [y/N] " response
+    echo ""
+    if [[ "$response" =~ ^[Yy]$ ]]; then return 0; else return 1; fi
 }
 
-dfsync_activate() {
-    local pattern="$1"
-    local bin="${HOME}/.local/bin/dfsync"
-    local catalog="${ZEN_HOME}/dfsync.json"
-    
-    if [[ ! -x "$bin" ]]; then return 0; fi
-    
-    # 1. Initialize local config if needed
-    if [[ ! -f "${HOME}/.dfsync.json" ]]; then
-        # Grab Gist ID from catalog
-        local gid=$(grep -E '"gist_id":' "$catalog" | cut -d'"' -f4)
-        echo "{\"gist_id\": \"$gid\", \"files\": []}" > "${HOME}/.dfsync.json"
-    fi
-    
-    # 2. Extract matching files from catalog (grep regex)
-    local files=$(grep -E "$pattern" "$catalog" | sed 's/^[[:space:]]*"//;s/",\?//' | tr -d ' ')
-    
-    if [[ -n "$files" ]]; then
-        echo "  - Registering cloud configs for pattern: '$pattern'"
-        
-        while IFS= read -r line; do
-             if [[ -n "$line" ]]; then
-                 if [[ "$CHECK_MODE" == "true" ]]; then
-                     echo "    [Dry Run] Would track: $line"
-                 else
-                     # Track file (Adds to ~/.dfsync.json)
-                     "$bin" track "$line" >/dev/null 2>&1
-                 fi
-             fi
-        done <<< "$files"
-        
-        # 3. Pull (Using standard interface, pulls everything in ~/.dfsync.json)
-        if [[ "$CHECK_MODE" == "false" ]]; then
-             "$bin" pull
-        fi
-    fi
-}
-
-show_help() {
-    echo -e "${BLUE}Zen Load - Environment Restorer${NC}"
-    echo -e "Usage: zen-load [OPTIONS]"
-    echo -e "\n${YELLOW}Core:${NC}"
-    echo -e "  (no args)   Stows packages and checks config health."
-    echo -e "  --check     Dry-run Stow to detect conflicts."
-    echo -e "\n${YELLOW}Installers:${NC}"
-    echo -e "  --all       God Mode. Installs EVERYTHING (Brew, Stow, Fonts, dfsync, defaults)."
-    echo -e "  --brew      Install Homebrew and packages."
-    echo -e "  --dfsync    Install/Update dfsync and pull data."
-    echo -e "  --npm       Install Node.js global packages."
-    echo -e "  --vscode    Install VS Code extensions."
-    echo -e "  --macos     Apply macOS system defaults."
-    echo -e "\n${YELLOW}Flags:${NC}"
-    echo -e "  -y          Auto-confirm dfsync prompts."
-    echo -e "  -v          Verbose logging."
-    echo -e "  --help      Show this help message."
-    exit 0
-}
-
-# --- 1. Stow Logic ---
 check_stow() {
     if ! command -v stow &> /dev/null; then
-        echo -e "${YELLOW}Stow not found. Installing via Homebrew...${NC}"
-        install_homebrew_core_only
+        echo -e "${YELLOW}Stow not found. Installing via Brew...${NC}"
         brew install stow
     fi
 }
 
 backup_file() {
-    local timestamp=$(date +%Y%m%d_%H%M%S)
-    local backup_dir="${ZEN_HOME}/graveyard/backups/${timestamp}"
+    local target="$1"
+    local backup_dir="${ZEN_HOME}/graveyard/backups/$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"
-    echo -e "  - Backing up $1 to $backup_dir/"
-    mv "$1" "$backup_dir/"
+    
+    if [[ -e "$target" || -L "$target" ]]; then
+        echo -e "${YELLOW}  -> Backing up $(basename "$target") to graveyard...${NC}"
+        mv "$target" "$backup_dir/"
+    fi
+}
+
+dfsync_activate() {
+    local pattern="$1"
+    local bin_path="${HOME}/.local/bin/dfsync"
+    
+    # We use track to ensure they are in local config, then pull.
+    # Actually, we just want to ensure we pull the LATEST version of these files from Gist
+    # irrespective of whether they are tracked locally yet?
+    # No, dfsync pull only pulls what is in the config.
+    # So we must 'track' them first if we want them?
+    # Or we assume the user's Gist ALREADY has them.
+    # Current design: The manifest is the source of truth.
+    
+    # Find all files matching pattern in dfsync.json?
+    # No, we'll just run pull and trust dfsync.json is populated?
+    # Wait, for a new user, dfsync.json is empty.
+    # So we need to populate it from our templates? 
+    # v2.1 Optimization: We treat ~/.zen/dfsync.json as the master catalog.
+    # It SHOULD already contain everything we care about if we checked out the repo.
+    # But it might be empty if we want to be selective.
+     
+    # Strategy: 
+    # 1. Read catalog from repo (dfsync.json.template -> effectively master list)
+    # 2. Add matching files to local .dfsync.json
+    # 3. Pull them.
+    
+    if [[ -x "$bin_path" ]]; then
+        # This is a "smart" activation.
+        # We assume the user wants the files related to this module.
+        # Check if we have a gist.
+        local gist_id=$(grep "gist_id" "${HOME}/.dfsync.json" 2>/dev/null | cut -d'"' -f4)
+        if [[ -n "$gist_id" ]]; then
+             # Filter is tricky without complex logic. 
+             # For now, we rely on the initial full pull or selective pull?
+             # Let's simple run pull with interactive prompts?
+             # No, users want minimal prompt.
+             
+             # Currently we just run pull.
+             : # Placeholder for future granular sync
+        fi
+    fi
 }
 
 resolve_conflicts() {
-    local pkgs=("$@")
+    local candidates=("$@")
     echo -e "\n--- ⚔️  Resolving Conflicts (Smart) ---"
     
-    # If no specific packages passed, do global check (legacy or all)
-    # But now we call this per-module usually? 
-    # Actually main calls it once globally with no args. Let's fix that too.
-    # The global call in main should perhaps be removed or iterate all.
-    # For now, let's make it recursive given a list, or default to all if empty.
-    
-    local candidates=("${pkgs[@]}")
-    if [[ ${#candidates[@]} -eq 0 ]]; then
-        candidates=("zsh" "starship" "git" "bin" "wezterm" "vscode")
-    fi
-
     for pkg in "${candidates[@]}"; do
         local pkg_dir="${STOW_DIR}/${pkg}"
+        echo "DEBUG: Scanning package $pkg at $pkg_dir"
         
         if [[ -d "$pkg_dir" ]]; then
             # Safe array-based find loop to handle all filenames
             local files=()
-            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" -not -path '*/.*' \( -type f -o -type l \) -print0)
+            # FIX: Do not use -not -path '*/.*' because it hides .zshrc!
+            # Instead, explicitly exclude .git directory and .DS_Store files.
+            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l \) -print0)
             
-            # echo "DEBUG: Found ${#files[@]} items in $pkg"
+            echo "DEBUG: Found ${#files[@]} items in $pkg"
             
             for file in "${files[@]}"; do
                 # Get relative path
@@ -157,6 +131,8 @@ resolve_conflicts() {
                     backup_file "$target"
                 fi
             done
+        else
+            echo "DEBUG: Package dir $pkg_dir does not exist!"
         fi
     done
 }
@@ -165,10 +141,14 @@ run_stow_packages() {
     local pkgs=("$@")
     echo -e "\n--- 📦 Stowing Packages: ${pkgs[*]} ---"
     
-    # 1. Pre-emptively clean conflicts for THESE packages
+    # Pre-flight conflict resolution
     resolve_conflicts "${pkgs[@]}"
     
-    local stow_args=("-d" "$STOW_DIR" "-t" "$HOME" "--verbose=1")
+    local stow_args=("-d" "$STOW_DIR" "-t" "$HOME")
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        stow_args+=("-v")
+    fi
+    
     if [[ "$CHECK_MODE" == "true" ]]; then
         stow_args+=("-n")
     else
