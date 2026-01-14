@@ -384,6 +384,15 @@ main() {
         # Removed global resolve_conflicts here; it is now called inside run_stow_packages per module
     fi
 
+    # 1.5 Homebrew Bundle (Install/Update)
+    if prompt_user "🍺 Install/Update Homebrew Packages?"; then
+         # We do not strictly need dfsync_activate "Brewfile" as it's in the repo (manifests/),
+         # but if the user has a PRIVATE Brewfile override in dfsync.json/manifests/private, 
+         # we should allow dfsync to pull it ?
+         # Currently Brewfile is public. 
+         if [[ "$CHECK_MODE" == "false" ]]; then install_homebrew; fi
+    fi
+
     # 2. Shell Configuration (zsh, starship, git, bin)
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
