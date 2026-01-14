@@ -227,22 +227,18 @@ install_dfsync() {
     local dfsync_args="$2"
     echo -e "\n--- ☁️  Installing/Updating dfsync ---"
     local bin_path="${HOME}/.local/bin/dfsync"
+    local bundled_bin="${ZEN_HOME}/stow/bin/.local/bin/dfsync"
     local installed=false
 
-    # Always fetch latest version to ensure consistency
-    echo -e "Downloading latest dfsync..."
-    if curl -fsSL "$DFSYNC_URL" -o "$bin_path" 2>/dev/null; then
+    # Use bundled version from repo (Self-contained)
+    if [[ -f "$bundled_bin" ]]; then
+        echo -e "Installing bundled dfsync..."
+        cp "$bundled_bin" "$bin_path"
         chmod +x "$bin_path"
-        if head -n 1 "$bin_path" | grep -q "#!"; then
-            echo -e "${GREEN}✔︎ dfsync updated to latest.${NC}"
-            installed=true
-        else
-            echo -e "${RED}[ERROR]${NC} Invalid download."
-            rm "$bin_path"
-            return
-        fi
+        installed=true
     else
-        echo -e "${RED}[ERROR]${NC} Download failed. Using existing binary if available."
+        echo -e "${RED}[ERROR]${NC} Bundled dfsync not found at $bundled_bin"
+        # Fallback to existing if present
         [[ -x "$bin_path" ]] && installed=true
     fi
 
