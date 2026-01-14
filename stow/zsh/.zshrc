@@ -431,7 +431,7 @@ alias ports="lsof -i -P -n | grep LISTEN"
 # Hist: Search history with FZF
 alias h="history 0 | fzf"
 # Zen: Run backup script
-alias backup="zen-save"
+alias zbackup="zen-save"
 # Zen: Run loader/installer script
 alias install-stack="zen-load"
 
