@@ -6,12 +6,12 @@
 # Environment Variables & Paths (Runs once at login)
 
 # 1. Homebrew Setup (Apple Silicon)
-if [ -d "/opt/homebrew/bin" ]; then
+if [ -x "/opt/homebrew/bin/brew" ]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
 fi
 
 # 2. Homebrew Setup (Intel Fallback)
-if [ -d "/usr/local/bin" ]; then
+if [ -x "/usr/local/bin/brew" ]; then
   eval "$(/usr/local/bin/brew shellenv)"
 fi
 

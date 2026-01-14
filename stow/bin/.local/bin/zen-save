@@ -57,11 +57,21 @@ dump_brew() {
 dump_npm() {
     if command -v npm &> /dev/null; then
         echo -e "🟢 Dumping NPM Globals..."
+        # Force plain text list of package names
         if command -v jq &> /dev/null; then
+            # -r extracts raw strings. keys[] gives keys.
             npm list -g --depth=0 --json | jq -r '.dependencies | keys[]' > "$NPM_LIST"
         else
             npm list -g --depth=0 | grep -v '├──' | grep -v '└──' | awk '{print $2}' | cut -d@ -f1 > "$NPM_LIST"
         fi
+        
+        # Validation: Verify it's a valid list (no JSON artifacts)
+        if grep -q "{" "$NPM_LIST"; then
+            echo -e "${YELLOW}[WARN] Invalid NPM list detected. Cleaning...${NC}"
+            # Fallback to grep method if jq failed to give clean list
+             npm list -g --depth=0 | grep -v '├──' | grep -v '└──' | awk '{print $2}' | cut -d@ -f1 > "$NPM_LIST"
+        fi
+        
         echo -e "${GREEN}✔︎ NPM list updated.${NC}"
     fi
 }
