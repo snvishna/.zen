@@ -301,8 +301,34 @@ install_npm_globals() {
     if command -v npm &> /dev/null && [[ -f "$NPM_LIST" ]]; then
         # Check if list is empty?
         grep -vE '^\s*#|^\s*$' "$NPM_LIST" | while read -r pkg; do
-            npm list -g "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg")
+            # Use depth=0 for speed and focus on top-level
+            npm list -g --depth=0 "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg")
         done
+    fi
+}
+
+fix_app_permissions() {
+    local apps=("WezTerm.app" "Kiro CLI.app")
+    local found_issues=false
+    
+    for app_name in "${apps[@]}"; do
+        local app_path="/Applications/${app_name}"
+        if [[ -d "$app_path" ]]; then
+            # Check ownership (if not owned by current user)
+            if [[ "$(stat -f '%u' "$app_path")" != "$(id -u)" ]]; then
+                echo -e "${YELLOW}[WARN] Ownership conflict detected for ${app_name}${NC}"
+                found_issues=true
+            fi
+        fi
+    done
+    
+    if [[ "$found_issues" == "true" ]]; then
+        if prompt_user "🔧 Fix permissions for conflicting Apps (WezTerm/Kiro)?"; then
+             echo "Claiming ownership of /Applications/WezTerm.app & Kiro CLI.app..."
+             # We use generic paths to avoid loop complexity in sudo command for now
+             sudo chown -R "$(whoami)" "/Applications/WezTerm.app" "/Applications/Kiro CLI.app" 2>/dev/null || true
+             echo -e "${GREEN}✔︎ Permissions patched.${NC}"
+        fi
     fi
 }
 
@@ -383,6 +409,9 @@ main() {
         install_dfsync "false" "$dfsync_flags"
         # Removed global resolve_conflicts here; it is now called inside run_stow_packages per module
     fi
+
+    # 1.4 Permissions Check (Pre-Flight)
+    fix_app_permissions
 
     # 1.5 Homebrew Bundle (Install/Update)
     if prompt_user "🍺 Install/Update Homebrew Packages?"; then
