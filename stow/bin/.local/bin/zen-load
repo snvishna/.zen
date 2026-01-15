@@ -158,6 +158,13 @@ run_stow_packages() {
     for pkg in "${pkgs[@]}"; do
         if [[ -d "${STOW_DIR}/${pkg}" ]]; then
             echo -e "  - Stowing ${pkg}..."
+            
+            # 1. Resolve Stow Conflicts (Target exists)
+            resolve_conflicts "$pkg"
+            
+            # 2. Resolve Legacy Precedence Conflicts (e.g. ~/.wezterm.lua)
+            resolve_legacy_conflicts "$pkg"
+            
             if ! stow -R "${stow_args[@]}" "$pkg" 2>&1 | sed 's/^/    /'; then
                 echo -e "${RED}[ERROR] Stow failed for $pkg.${NC}"
             fi
@@ -319,6 +326,26 @@ PRIVATE_CONFIGS=(
     "stats:eu.exelban.Stats.plist"
 )
 
+# Legacy Configs to Archive (Format: "package_name:legacy_file_path")
+# These files take precedence over XDG configs (e.g. ~/.wezterm.lua > ~/.config/wezterm/wezterm.lua)
+LEGACY_CONFLICTS=(
+    "wezterm:${HOME}/.wezterm.lua"
+    "starship:${HOME}/.starship.toml"
+)
+
+resolve_legacy_conflicts() {
+    local pkg_name="$1"
+    for conflict in "${LEGACY_CONFLICTS[@]}"; do
+        local target_pkg="${conflict%%:*}"
+        local legacy_file="${conflict##*:}"
+        
+        if [[ "$pkg_name" == "$target_pkg" && -f "$legacy_file" ]]; then
+             echo -e "${YELLOW}[FIX] Found conflicting legacy config ${legacy_file}. Moving to backup...${NC}"
+             backup_file "$legacy_file"
+        fi
+    done
+}
+
 fix_app_permissions() {
     local found_issues=false
     
@@ -464,21 +491,6 @@ main() {
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
         run_stow_packages "zsh" "starship" "git" "bin"
-    fi
-
-    # 3. Terminal (WezTerm)
-    if prompt_user "💻 Stow WezTerm Configuration?"; then
-        dfsync_activate "wezterm"
-        
-        # FIX: WezTerm prefers ~/.wezterm.lua over XDG (~/.config/wezterm/wezterm.lua).
-        # We must move the legacy file if it exists to allow our Stow config to work.
-        if [[ -f "$HOME/.wezterm.lua" ]]; then
-            echo -e "${YELLOW}[FIX] Found conflicting ~/.wezterm.lua. Moving to backup...${NC}"
-            backup_file "$HOME/.wezterm.lua"
-        fi
-        
-        run_stow_packages "wezterm"
-        if [[ "$CHECK_MODE" == "false" ]]; then setup_fonts; fi
     fi
 
     # 4. Editor (VS Code)
