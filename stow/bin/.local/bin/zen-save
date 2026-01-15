@@ -102,32 +102,36 @@ dump_defaults() {
     echo -e "${GREEN}✔︎ Defaults exported to ${private_macos}/macos_full_dump.txt${NC}"
 }
 
+# --- Constants ---
+# Private Config Mapping (Format: "directory_name:plist_filename")
+PRIVATE_CONFIGS=(
+    "raycast:com.raycast.macos.plist"
+    "rectangle:com.knollsoft.Rectangle.plist"
+    "ice:com.jordanbaird.Ice.plist"
+    "stats:eu.exelban.Stats.plist"
+)
+
+# ... (rest of constants)
+
 dump_private_configs() {
     echo -e "🔒 Snapshotting Private Configs..."
     local private_root="${MANIFESTS}/private"
     
-    # 1. Create Directories in manifests/private
-    mkdir -p "${private_root}/raycast"
-    mkdir -p "${private_root}/rectangle"
-    mkdir -p "${private_root}/finder"
-    mkdir -p "${private_root}/launchd"
-    
-    # 2. Raycast (Preferences only)
-    cp "${HOME}/Library/Preferences/com.raycast.macos.plist" "${private_root}/raycast/" 2>/dev/null || true
-    
-    # 3. Rectangle (Preferences only)
-    cp "${HOME}/Library/Preferences/com.knollsoft.Rectangle.plist" "${private_root}/rectangle/" 2>/dev/null || true
-
-    # 4. JordanBaird Ice
-    mkdir -p "${private_root}/ice"
-    cp "${HOME}/Library/Preferences/com.jordanbaird.Ice.plist" "${private_root}/ice/" 2>/dev/null || true
-
-    # 5. Stats (Exelban)
-    mkdir -p "${private_root}/stats"
-    cp "${HOME}/Library/Preferences/eu.exelban.Stats.plist" "${private_root}/stats/" 2>/dev/null || true
-
-    # 6. Update dfsync binary in repo
+    # Update dfsync binary in repo first
     cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
+
+    for config in "${PRIVATE_CONFIGS[@]}"; do
+        local dir_name="${config%%:*}"
+        local plist_name="${config##*:}"
+        local target_dir="${private_root}/${dir_name}"
+        local source_file="${HOME}/Library/Preferences/${plist_name}"
+
+        if [[ -f "$source_file" ]]; then
+            mkdir -p "$target_dir"
+            cp "$source_file" "$target_dir/" 2>/dev/null || true
+            # echo "  - Backed up $dir_name" # Optional verbose
+        fi
+    done
 
     echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"
 }

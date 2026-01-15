@@ -307,11 +307,22 @@ install_npm_globals() {
     fi
 }
 
+# --- Constants ---
+# Apps that require permission fixes (Format: "AppName.app")
+PROTECTED_APPS=("WezTerm.app" "Kiro CLI.app")
+
+# Private Config Mapping (Format: "directory_name:plist_filename")
+PRIVATE_CONFIGS=(
+    "raycast:com.raycast.macos.plist"
+    "rectangle:com.knollsoft.Rectangle.plist"
+    "ice:com.jordanbaird.Ice.plist"
+    "stats:eu.exelban.Stats.plist"
+)
+
 fix_app_permissions() {
-    local apps=("WezTerm.app" "Kiro CLI.app")
     local found_issues=false
     
-    for app_name in "${apps[@]}"; do
+    for app_name in "${PROTECTED_APPS[@]}"; do
         local app_path="/Applications/${app_name}"
         if [[ -d "$app_path" ]]; then
             # Check ownership (if not owned by current user)
@@ -324,10 +335,18 @@ fix_app_permissions() {
     
     if [[ "$found_issues" == "true" ]]; then
         if prompt_user "🔧 Fix permissions for conflicting Apps (WezTerm/Kiro)?"; then
-             echo "Claiming ownership of /Applications/WezTerm.app & Kiro CLI.app..."
-             # We use generic paths to avoid loop complexity in sudo command for now
-             sudo chown -R "$(whoami)" "/Applications/WezTerm.app" "/Applications/Kiro CLI.app" 2>/dev/null || true
-             echo -e "${GREEN}✔︎ Permissions patched.${NC}"
+             echo "Claiming ownership of protected apps..."
+             # Construct command dynamically
+             local targets=()
+             for app in "${PROTECTED_APPS[@]}"; do
+                 targets+=("/Applications/$app")
+             done
+             
+             # Run sudo once for all targets
+             if [[ ${#targets[@]} -gt 0 ]]; then
+                sudo chown -R "$(whoami)" "${targets[@]}" 2>/dev/null || true
+                echo -e "${GREEN}✔︎ Permissions patched.${NC}"
+             fi
         fi
     fi
 }
@@ -380,21 +399,14 @@ restore_private_configs() {
     echo -e "\n--- 🔒 Restoring Private App Configs ---"
     local private_root="${ZEN_HOME}/manifests/private"
     
-    # Map: "Folder Name" -> "Plist Filename"
-    declare -A apps=( 
-        ["raycast"]="com.raycast.macos.plist"
-        ["rectangle"]="com.knollsoft.Rectangle.plist"
-        ["ice"]="com.jordanbaird.Ice.plist"
-        ["stats"]="eu.exelban.Stats.plist"
-    )
-    
-    for app_folder in "${!apps[@]}"; do
-        local plist="${apps[$app_folder]}"
-        local src="${private_root}/${app_folder}/${plist}"
-        local dest="${HOME}/Library/Preferences/${plist}"
+    for config in "${PRIVATE_CONFIGS[@]}"; do
+        local dir_name="${config%%:*}"
+        local plist_name="${config##*:}"
+        local src="${private_root}/${dir_name}/${plist_name}"
+        local dest="${HOME}/Library/Preferences/${plist_name}"
         
         if [[ -f "$src" ]]; then
-            echo -e "Restoring ${app_folder} preferences..."
+            echo -e "Restoring ${dir_name} preferences..."
             cp "$src" "$dest"
             # Attempt to refresh preferences cache (safe)
             killall cfprefsd &>/dev/null || true
