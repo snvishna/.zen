@@ -12,7 +12,7 @@ BREWFILE="${MANIFESTS}/Brewfile"
 NPM_LIST="${MANIFESTS}/npm_globals.txt"
 VSCODE_LIST="${STOW_DIR}/vscode/.config/vscode/extensions.txt"
 MACOS_SCRIPT="${MANIFESTS}/macos/defaults.sh"
-DFSYNC_URL="https://raw.githubusercontent.com/snvishna/dfsync/main/dfsync.sh"
+DFSYNC_URL="https://raw.githubusercontent.com/snvishna/dotfilesync/master/src/dfsync.sh"
 
 # Colors
 RED='\033[0;31m'
@@ -227,18 +227,22 @@ install_dfsync() {
     local dfsync_args="$2"
     echo -e "\n--- ☁️  Installing/Updating dfsync ---"
     local bin_path="${HOME}/.local/bin/dfsync"
-    local bundled_bin="${ZEN_HOME}/stow/bin/.local/bin/dfsync"
     local installed=false
 
-    # Use bundled version from repo (Self-contained)
-    if [[ -f "$bundled_bin" ]]; then
-        echo -e "Installing bundled dfsync..."
-        cp "$bundled_bin" "$bin_path"
+    # Always fetch latest version to ensure consistency
+    echo -e "Downloading latest dfsync..."
+    if curl -fsSL "$DFSYNC_URL" -o "$bin_path" 2>/dev/null; then
         chmod +x "$bin_path"
-        installed=true
+        if head -n 1 "$bin_path" | grep -q "#!"; then
+            echo -e "${GREEN}✔︎ dfsync updated to latest.${NC}"
+            installed=true
+        else
+            echo -e "${RED}[ERROR]${NC} Invalid download."
+            rm "$bin_path"
+            return
+        fi
     else
-        echo -e "${RED}[ERROR]${NC} Bundled dfsync not found at $bundled_bin"
-        # Fallback to existing if present
+        echo -e "${RED}[ERROR]${NC} Download failed. Using existing binary if available."
         [[ -x "$bin_path" ]] && installed=true
     fi
 
