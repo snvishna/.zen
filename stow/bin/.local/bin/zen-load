@@ -376,6 +376,32 @@ install_macos_defaults() {
     echo -e "${GREEN}✔︎ Defaults applied.${NC}"
 }
 
+restore_private_configs() {
+    echo -e "\n--- 🔒 Restoring Private App Configs ---"
+    local private_root="${ZEN_HOME}/manifests/private"
+    
+    # Map: "Folder Name" -> "Plist Filename"
+    declare -A apps=( 
+        ["raycast"]="com.raycast.macos.plist"
+        ["rectangle"]="com.knollsoft.Rectangle.plist"
+        ["ice"]="com.jordanbaird.Ice.plist"
+        ["stats"]="eu.exelban.Stats.plist"
+    )
+    
+    for app_folder in "${!apps[@]}"; do
+        local plist="${apps[$app_folder]}"
+        local src="${private_root}/${app_folder}/${plist}"
+        local dest="${HOME}/Library/Preferences/${plist}"
+        
+        if [[ -f "$src" ]]; then
+            echo -e "Restoring ${app_folder} preferences..."
+            cp "$src" "$dest"
+            # Attempt to refresh preferences cache (safe)
+            killall cfprefsd &>/dev/null || true
+        fi
+    done
+}
+
 # --- Main Logic ---
 main() {
     export CHECK_MODE="false"
@@ -448,6 +474,7 @@ main() {
         if [[ "$CHECK_MODE" == "false" ]]; then 
             install_macos_defaults
             install_npm_globals
+            restore_private_configs
         fi
     fi
 
