@@ -1,4 +1,8 @@
 {
-  "gist_id": "",
-  "files": []
+  "files": [
+    "~/.zen/dfsync.json",
+    "~/.zshrc.local",
+    "~/.gitconfig.local"
+  ],
+  "gist_id": ""
 }

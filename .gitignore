@@ -22,5 +22,5 @@ stow/launchd/Library/LaunchAgents/com.shankar.configbackup.plist
 config/
 manifests/private/
 .zshrc.local
-wezterm-private.lua
+wezterm-local.lua
 *.local

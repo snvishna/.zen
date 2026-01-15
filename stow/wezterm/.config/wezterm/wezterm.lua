@@ -230,7 +230,7 @@ config.key_tables = {
 -- =========================================================
 -- 7. PRIVATE OVERRIDES
 -- =========================================================
--- Load private config file (wezterm-private.lua) if it exists.
+-- Load private config file (wezterm-local.lua) if it exists.
 -- This allows for secret font selections, domains, or work-specific settings.
 -- The module should return a table that we can merge or use to override 'config'.
 local function merge_tables(t1, t2)
@@ -248,7 +248,7 @@ local function merge_tables(t1, t2)
     return t1
 end
 
-local success, private_config = pcall(require, 'wezterm-private')
+local success, private_config = pcall(require, 'wezterm-local')
 if success then
    config = merge_tables(config, private_config)
 end
