@@ -469,6 +469,14 @@ main() {
     # 3. Terminal (WezTerm)
     if prompt_user "💻 Stow WezTerm Configuration?"; then
         dfsync_activate "wezterm"
+        
+        # FIX: WezTerm prefers ~/.wezterm.lua over XDG (~/.config/wezterm/wezterm.lua).
+        # We must move the legacy file if it exists to allow our Stow config to work.
+        if [[ -f "$HOME/.wezterm.lua" ]]; then
+            echo -e "${YELLOW}[FIX] Found conflicting ~/.wezterm.lua. Moving to backup...${NC}"
+            backup_file "$HOME/.wezterm.lua"
+        fi
+        
         run_stow_packages "wezterm"
         if [[ "$CHECK_MODE" == "false" ]]; then setup_fonts; fi
     fi
