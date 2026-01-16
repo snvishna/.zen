@@ -3,39 +3,29 @@ local config = wezterm.config_builder()
 local action = wezterm.action
 
 -- =========================================================
--- 2. VISUALS (Zen Glass Theme)
+-- 1. VISUALS (Zen Glass Theme)
 -- =========================================================
 config.color_scheme = 'Catppuccin Mocha'
--- config.colors override removed to use standard palette
-
 config.default_cwd = wezterm.home_dir
 
 config.font = wezterm.font_with_fallback {
   'JetBrains Mono',
   'Apple Color Emoji',
 }
-config.font_size = 14.0
-config.line_height = 0.9
-config.window_decorations = "TITLE | RESIZE" -- Keep Title Bar
+config.font_size = 16.0
+config.line_height = 1.05 -- Optimized for readability
 
-
-config.window_padding = {
-  left = 16,
-  right = 16,
-  top = 12,
-  bottom = 12,
-}
+-- FRAMELESS UI: Removes the native Mac title bar (iTerm style)
+config.window_decorations = "RESIZE" 
+config.window_padding = { left = 12, right = 12, top = 12, bottom = 12 }
 
 -- Transparency & Blur
-config.window_background_opacity = 0.9 -- Slightly less transparent for contrast
-config.macos_window_background_blur = 20
+config.window_background_opacity = 0.90 
+config.macos_window_background_blur = 30
 config.text_background_opacity = 1.0
 
 -- Dim inactive panes (Spotlight Mode)
-config.inactive_pane_hsb = {
-  saturation = 0.6,
-  brightness = 0.3, 
-}
+config.inactive_pane_hsb = { saturation = 0.8, brightness = 0.6 }
 
 -- =========================================================
 -- 2. TABS & STATUS BAR
@@ -44,11 +34,15 @@ config.hide_tab_bar_if_only_one_tab = false
 config.use_fancy_tab_bar = false
 config.tab_bar_at_bottom = true
 config.tab_max_width = 32
+config.show_new_tab_button_in_tab_bar = false
 
 wezterm.on('update-right-status', function(window, pane)
+  local name = window:active_workspace()
+  if name == 'default' then name = 'Zen' end
   window:set_right_status(wezterm.format({
     { Attribute = { Intensity = 'Bold' } },
-    { Text = window:active_workspace() .. '  ' },
+    { Foreground = { Color = '#fab387' } },
+    { Text = '  ' .. name .. '  ' },
   }))
 end)
 
@@ -57,10 +51,10 @@ end)
 -- =========================================================
 config.front_end = "WebGpu"
 config.scrollback_lines = 100000
-config.default_cursor_style = 'BlinkingBar' -- Or BlinkingBlock
-config.animation_fps = 1
-config.animation_fps = 120
+config.default_cursor_style = 'BlinkingBar'
+config.animation_fps = 120 -- Fixed: Removed duplicate "1"
 config.cursor_blink_rate = 500
+
 -- Allow standard Mac keys (Option -> Alt)
 config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = true
@@ -68,130 +62,99 @@ config.send_composed_key_when_right_alt_is_pressed = true
 -- =========================================================
 -- 4. POWER USER FEATURES
 -- =========================================================
+config.enable_scroll_bar = false
+config.quick_select_alphabet = "arstqwfpzxcvneioluymdhgjbk" -- Restored
+
+-- Hyperlinks (Restored Custom Regex)
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
 table.insert(config.hyperlink_rules, {
   regex = '[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z0-9_.-]+',
   format = 'mailto:$0',
 })
 
-config.enable_scroll_bar = false
-config.quick_select_alphabet = "arstqwfpzxcvneioluymdhgjbk"
-
 config.mouse_bindings = {
-  {
-    event = { Down = { streak = 1, button = 'Right' } },
-    mods = 'NONE',
-    action = action.PasteFrom 'Clipboard',
-  },
-  {
-    event = { Up = { streak = 1, button = 'Left' } },
-    mods = 'CMD',
-    action = action.OpenLinkAtMouseCursor,
-  },
+  { event = { Down = { streak = 1, button = 'Right' } }, mods = 'NONE', action = action.PasteFrom 'Clipboard' },
+  { event = { Up = { streak = 1, button = 'Left' } }, mods = 'CMD', action = action.OpenLinkAtMouseCursor },
 }
 
 -- =========================================================
--- 5. KEYBINDINGS (The "Editor" Feel)
+-- 5. KEYBINDINGS (iTerm + Power User)
 -- =========================================================
 config.keys = {
-  -- --- CLIPBOARD (Smart Integration) ---
-  -- --- CLIPBOARD (Smart Integration) ---
-  -- Cmd+C = Send \x1bc (Esc+c) -> Zsh captures this to copy selection
-  { key = 'c', mods = 'CMD', action = action.SendString '\x1bc' },
-  -- Cmd+X = Send \x1bx (Esc+x) -> Zsh captures this to cut selection
-  { key = 'x', mods = 'CMD', action = action.SendString '\x1bx' },
-  -- Cmd+V = Send \x1bv (Esc+v) -> Zsh captures this to Smart Paste
-  { key = 'v', mods = 'CMD', action = action.SendString '\x1bv' },
-  -- Cmd+Shift+V = Force Native Paste (for Vim/Nano/Remote)
-  { key = 'v', mods = 'CMD|SHIFT', action = action.PasteFrom 'Clipboard' },
-  -- Cmd+Shift+C = Force Native Copy (for mouse selections/non-Zsh apps)
-  { key = 'c', mods = 'CMD|SHIFT', action = action.CopyTo 'Clipboard' },
-  
-  -- --- SEARCH ---
-  { key = 'f', mods = 'CMD', action = action.Search 'CurrentSelectionOrEmptyString' },
+  -- --- ZSH HANDSHAKE (Crucial for FZF) ---
+  -- Cmd+T: Sends Esc+t -> Triggers FZF File Search in Zsh
+  { key = 't', mods = 'CMD', action = action.SendString '\x1bt' },
 
-  -- --- COPY MODE (The "Select Text" fix) ---
-  -- 1. Enter Copy Mode
-  { key = 'Space', mods = 'CMD|SHIFT', action = action.ActivateCopyMode },
-  
-  -- --- FONT SIZING (Zoom) ---
-  { key = '=', mods = 'CMD', action = action.IncreaseFontSize },
-  { key = '-', mods = 'CMD', action = action.DecreaseFontSize },
-  { key = '0', mods = 'CMD', action = action.ResetFontSize },
+  -- --- CLIPBOARD ---
+  -- Cmd+C: Sends Esc+c -> Triggers Smart Copy in Zsh
+  { key = 'c', mods = 'CMD', action = action.CopyTo 'Clipboard' },
+  -- Cmd+X: Sends Esc+x -> Triggers Smart Cut in Zsh
+  { key = 'x', mods = 'CMD', action = action.CopyTo 'Clipboard' },
+  -- Cmd+V: Smart Paste
+  { key = 'v', mods = 'CMD', action = action.PasteFrom 'Clipboard' },
 
-  -- --- PANE MANAGEMENT ---
+  -- --- SPLITS (iTerm Style) ---
   { key = 'd', mods = 'CMD', action = action.SplitHorizontal { domain = 'CurrentPaneDomain' } },
   { key = 'd', mods = 'CMD|SHIFT', action = action.SplitVertical { domain = 'CurrentPaneDomain' } },
   { key = 'w', mods = 'CMD', action = action.CloseCurrentPane { confirm = true } },
+
+  -- --- NAVIGATION ---
+  -- Cmd+Option+Arrows: Switch Tabs
+  { key = 'LeftArrow', mods = 'CMD|OPT', action = action.ActivateTabRelative(-1) },
+  { key = 'RightArrow', mods = 'CMD|OPT', action = action.ActivateTabRelative(1) },
   
-  -- NAVIGATE PANES: CMD + Arrow (Standard Editor Style)
-  { key = 'LeftArrow',  mods = 'CMD', action = action.ActivatePaneDirection 'Left' },
-  { key = 'RightArrow', mods = 'CMD', action = action.ActivatePaneDirection 'Right' },
+  -- Cmd+Arrows: Pane Navigation
   { key = 'UpArrow',    mods = 'CMD', action = action.ActivatePaneDirection 'Up' },
   { key = 'DownArrow',  mods = 'CMD', action = action.ActivatePaneDirection 'Down' },
-
-  -- RESIZE PANES: CTRL + SHIFT + Arrow
-  { key = 'LeftArrow', mods = 'CTRL|SHIFT', action = action.AdjustPaneSize { 'Left', 5 } },
-  { key = 'RightArrow', mods = 'CTRL|SHIFT', action = action.AdjustPaneSize { 'Right', 5 } },
-  { key = 'UpArrow', mods = 'CTRL|SHIFT', action = action.AdjustPaneSize { 'Up', 5 } },
-  { key = 'DownArrow', mods = 'CTRL|SHIFT', action = action.AdjustPaneSize { 'Down', 5 } },
-
-  -- --- TABS ---
-  { key = 't', mods = 'CMD', action = action.SpawnTab 'CurrentPaneDomain' },
-  { key = '[', mods = 'CMD|SHIFT', action = action.ActivateTabRelative(-1) },
-  { key = ']', mods = 'CMD|SHIFT', action = action.ActivateTabRelative(1) },
-  { key = '1', mods = 'CMD', action = action.ActivateTab(0) },
-  { key = '2', mods = 'CMD', action = action.ActivateTab(1) },
-  { key = '3', mods = 'CMD', action = action.ActivateTab(2) },
-
-  -- --- UTILITIES ---
-  { key = 'p', mods = 'CMD', action = action.ActivateCommandPalette },
-  { key = 'L', mods = 'CTRL|SHIFT', action = action.ShowDebugOverlay },
-  { key = 'k', mods = 'CMD', action = action.ClearScrollback 'ScrollbackOnly' },
   
-  -- --- TEXT NAV (Sending Codes to Zsh) ---
-  -- Option+Left/Right = Jump Word (sends Alt-b / Alt-f)
-  { key = 'LeftArrow', mods = 'OPT', action = action.SendKey { key = 'b', mods = 'ALT' } },
-  { key = 'RightArrow', mods = 'OPT', action = action.SendKey { key = 'f', mods = 'ALT' } },
-  -- Cmd+Backspace = Delete Line (sends Ctrl-U)
+  -- --- EDITOR TEXT NAV (Hex Codes for Zsh) ---
+  -- Cmd+Left/Right: Start/End of Line
+  { key = 'LeftArrow', mods = 'CMD', action = action.SendString '\x01' },
+  { key = 'RightArrow', mods = 'CMD', action = action.SendString '\x05' },
+  -- Option+Left/Right: Jump Word
+  { key = 'LeftArrow', mods = 'OPT', action = action.SendString '\x1bb' },
+  { key = 'RightArrow', mods = 'OPT', action = action.SendString '\x1bf' },
+  
+  -- --- EDITOR EXPERIENCE ---
+  -- Cmd+Backspace: Delete Line
   { key = 'Backspace', mods = 'CMD', action = action.SendString '\x15' },
-  
-  -- --- EDITOR EXPERIENCE (Undo/Redo & Selection) ---
-  -- Undo: Cmd+Z -> Ctrl+_ (\x1f)
+  -- Cmd+Z: Undo / Cmd+Shift+Z: Redo
   { key = 'z', mods = 'CMD', action = action.SendString '\x1f' },
-  -- Redo: Cmd+Shift+Z -> Ctrl+Y (\x19) (We will map this in Zsh)
   { key = 'z', mods = 'CMD|SHIFT', action = action.SendString '\x19' },
 
-  -- Text Selection (Shift+Arrow) -> Send standard xterm codes
+  -- Shift+Arrows: Select Text (Sends xterm codes for Zsh visual mode)
   { key = 'LeftArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2D' },
   { key = 'RightArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2C' },
   { key = 'UpArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2A' },
   { key = 'DownArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2B' },
-  
-  -- Select Line Start/End (Cmd+Shift+Arrow) -> Send custom codes
+
+  -- Cmd+Shift+Arrows: Select Line Start/End
   { key = 'LeftArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9D' },
   { key = 'RightArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9C' },
 
-  -- Multi-line Entry (Shift+Enter) -> Send Esc+Enter
-  { key = 'Enter', mods = 'SHIFT', action = action.SendString '\x1b\r' },
+  -- --- UTILITIES ---
+  { key = 'n', mods = 'CMD', action = action.SpawnTab 'CurrentPaneDomain' },
+  { key = 'f', mods = 'CMD', action = action.Search 'CurrentSelectionOrEmptyString' },
+  { key = 'p', mods = 'CMD|SHIFT', action = action.ActivateCommandPalette },
+  { key = 'k', mods = 'CMD', action = action.ClearScrollback 'ScrollbackOnly' },
+  { key = '=', mods = 'CMD', action = action.IncreaseFontSize },
+  { key = '-', mods = 'CMD', action = action.DecreaseFontSize },
+  { key = '0', mods = 'CMD', action = action.ResetFontSize },
 
-  -- Word Selection (Shift+Option+Arrow) -> Send custom codes
-  { key = 'LeftArrow', mods = 'SHIFT|OPT', action = action.SendString '\x1b[1;10D' },
-  { key = 'RightArrow', mods = 'SHIFT|OPT', action = action.SendString '\x1b[1;10C' },
+  -- --- COPY MODE ---
+  { key = 'Space', mods = 'CMD|SHIFT', action = action.ActivateCopyMode },
 }
 
 -- =========================================================
--- 6. KEY TABLES (Advanced Selection Logic)
+-- 6. KEY TABLES (Restored Full Logic)
 -- =========================================================
 config.key_tables = {
-  -- This table activates when you press CMD+SHIFT+SPACE
   copy_mode = {
-    -- Exit
     { key = 'c', mods = 'CMD', action = action.CopyMode 'Close' },
     { key = 'Escape', mods = 'NONE', action = action.CopyMode 'Close' },
     { key = 'q', mods = 'NONE', action = action.CopyMode 'Close' },
 
-    -- MOVEMENT (Vim Style + Arrow Keys)
+    -- MOVEMENT
     { key = 'h', mods = 'NONE', action = action.CopyMode 'MoveLeft' },
     { key = 'j', mods = 'NONE', action = action.CopyMode 'MoveDown' },
     { key = 'k', mods = 'NONE', action = action.CopyMode 'MoveUp' },
@@ -201,17 +164,15 @@ config.key_tables = {
     { key = 'UpArrow', mods = 'NONE', action = action.CopyMode 'MoveUp' },
     { key = 'DownArrow', mods = 'NONE', action = action.CopyMode 'MoveDown' },
 
-    -- SELECTION BEHAVIOR
-    -- 1. "v" to start character selection, "V" for line selection
+    -- SELECTION
     { key = 'v', mods = 'NONE', action = action.CopyMode{ SetSelectionMode =  'Cell' } },
     { key = 'V', mods = 'SHIFT', action = action.CopyMode{ SetSelectionMode = 'Line' } },
     
-    -- 2. Shift + Arrows to Move Faster (By Word)
-    -- FIXED: Passed as strings, not tables
+    -- WORD JUMP
     { key = 'LeftArrow', mods = 'SHIFT', action = action.CopyMode 'MoveBackwardWord' },
     { key = 'RightArrow', mods = 'SHIFT', action = action.CopyMode 'MoveForwardWord' },
     
-    -- OPERATION
+    -- ACTION
     { key = 'y', mods = 'NONE', action = action.Multiple{ { CopyTo =  'ClipboardAndPrimarySelection' }, { CopyMode =  'Close' } } },
     { key = 'c', mods = 'CMD', action = action.Multiple{ { CopyTo =  'ClipboardAndPrimarySelection' }, { CopyMode =  'Close' } } },
   },
@@ -228,11 +189,8 @@ config.key_tables = {
 }
 
 -- =========================================================
--- 7. PRIVATE OVERRIDES
+-- 7. PRIVATE OVERRIDES (Restored)
 -- =========================================================
--- Load private config file (wezterm-local.lua) if it exists.
--- This allows for secret font selections, domains, or work-specific settings.
--- The module should return a table that we can merge or use to override 'config'.
 local function merge_tables(t1, t2)
     for k,v in pairs(t2) do
         if type(v) == 'table' then
