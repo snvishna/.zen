@@ -1,9 +1,12 @@
+# ==============================================================================
+#   Zsh Main Config (Zen Infrastructure v3.1)
+#
+#  DEPENDENCIES (Install via Homebrew):
+#  > brew install starship zoxide eza bat fzf fd ripgrep git-delta tldr ncdu jq trash sevenzip
+# ==============================================================================
+
 # Kiro CLI pre block. Keep at the top of this file.
 [[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
-
-# ==============================================================================
-#   Zsh Main Config (Zen Infrastructure v3.0 - Power User Edition)
-# ==============================================================================
 
 # 1. INITIALIZATION & PATHS
 # ------------------------------------------------------------------------------
@@ -83,6 +86,23 @@ ha() {
         local alias_name=$(echo "$selected" | cut -d'=' -f1 | sed 's/^[ \t]*alias //')
         print -z "$alias_name "
     fi
+}
+
+# --- HEALTH CHECK (zdoctor) ---
+# Verifies all "Power User" dependencies are installed
+zdoctor() {
+    local deps=("starship:Prompt" "zoxide:Smart Jump" "eza:Modern LS" "bat:Modern Cat" "fzf:Fuzzy Finder" "fd:Fast Find" "rg:Fast Grep" "delta:Git Diff" "tldr:Modern Help" "ncdu:Disk Usage" "jq:JSON Processor" "trash:Safe Delete" "7z:Archiver")
+    local missing=()
+    echo "\n🩺 Zen Infrastructure Diagnostic"
+    echo "=============================="
+    for entry in "${deps[@]}"; do
+        local tool="${entry%%:*}"
+        local desc="${entry##*:}"
+        if command -v "$tool" &> /dev/null; then printf "  ✅ %-10s %s\n" "$tool" "($desc)"; else printf "  ❌ %-10s %s\n" "$tool" "($desc)"; missing+=("$tool"); fi
+    done
+    echo "=============================="
+    if [ ${#missing[@]} -eq 0 ]; then echo "🚀 All systems operational."; else echo "⚠️  Missing packages. Run:"; echo "   brew install ${missing[*]}"; fi
+    echo ""
 }
 
 # --- DIRECTORY UTILS ---
@@ -187,6 +207,42 @@ fi
 # 6. EDITOR KEYBINDINGS (WezTerm/Emacs Style)
 # ------------------------------------------------------------------------------
 bindkey -e # Emacs mode
+
+# --- FZF & KEYBOARD FIXES ---
+bindkey -r '\ec'
+bindkey -r '^[c'
+bindkey '^[t' fzf-file-widget
+
+# --- SMART NAVIGATION (Multi-line Support) ---
+# Function: Up Arrow
+# Logic: If multi-line text, move cursor up. If at top (or single line), search history.
+function smart-up-arrow() {
+    if [[ $BUFFER == *$'\n'* ]]; then
+        local original_cursor=$CURSOR
+        zle up-line
+        [[ $CURSOR -eq $original_cursor ]] && zle fzf-history-widget
+    else
+        zle fzf-history-widget
+    fi
+}
+zle -N smart-up-arrow
+
+# Function: Down Arrow
+# Logic: If multi-line text, move cursor down. If at bottom, go to next history item.
+function smart-down-arrow() {
+    if [[ $BUFFER == *$'\n'* ]]; then
+        local original_cursor=$CURSOR
+        zle down-line
+        [[ $CURSOR -eq $original_cursor ]] && zle down-line-or-history
+    else
+        zle down-line-or-history
+    fi
+}
+zle -N smart-down-arrow
+
+# Bind the Smart Widgets
+bindkey '^[[A' smart-up-arrow
+bindkey '^[[B' smart-down-arrow
 
 # Helpers
 function r-delregion() {
