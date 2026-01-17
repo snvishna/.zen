@@ -74,6 +74,7 @@ The project uses **GNU Stow** to manage symlinks.
 *   **Commits**: Make frequent, meaningful commits (`feat:`, `fix:`, `docs:`).
     *   *Example*: `feat(nvim): enable hidden file search in telescope`
 *   **Push**: **NEVER PUSH**. The user handles the push manually. Just commit locally.
+*   **Definition of Done**: You MUST run `git status` before calling `notify_user` to ensure no untracked files (lockfiles, state files) are left behind.
 
 ### 3. File Operations
 *   **Respect Stow**: Never edit files in `~/.config` directly if they are symlinked. Edit the source in `~/.zen/stow/...`.
