@@ -3,6 +3,25 @@ local config = wezterm.config_builder()
 local action = wezterm.action
 
 -- =========================================================
+-- 0. HELPERS
+-- =========================================================
+local function get_background_image()
+  -- 1. Check for user override (background.png, .jpg, .jpeg)
+  local possible_overrides = { 'background.png', 'background.jpg', 'background.jpeg', 'background.gif' }
+  for _, filename in ipairs(possible_overrides) do
+    local path = wezterm.config_dir .. '/' .. filename
+    local f = io.open(path, 'r')
+    if f then
+      f:close()
+      return path
+    end
+  end
+  
+  -- 2. Fallback to Zen Glass asset
+  return wezterm.config_dir .. '/assets/zen-glass.png'
+end
+
+-- =========================================================
 -- 1. VISUALS (Zen Glass Theme)
 -- =========================================================
 config.color_scheme = 'Catppuccin Mocha'
@@ -13,22 +32,42 @@ config.font = wezterm.font_with_fallback {
   'Apple Color Emoji',
 }
 config.font_size = 16.0
-config.line_height = 1.05 -- Optimized for readability
+config.line_height = 1.05
 
-config.colors = {
-  background = '#1A1A1A'
+config.background = {
+  -- Layer 1: The Solid Background Color
+  {
+    source = { Color = '#1A1A1A' },
+    width = '100%',
+    height = '100%',
+    opacity = 0.75,
+  },
+  -- Layer 2: The Image (Watermark)
+  {
+    source = { File = get_background_image() },
+    vertical_align = 'Bottom',
+    horizontal_align = 'Right',
+    vertical_offset = -50,
+    width = '15%',
+    height = '20%',
+    repeat_x = 'NoRepeat',
+    repeat_y = 'NoRepeat',
+    hsb = {
+      brightness = 0.9,
+      hue = 1.0,
+      saturation = 0.5,
+    },
+    opacity = 0.25
+  },
 }
 
--- FRAMELESS UI: Removes the native Mac title bar (iTerm style)
-config.window_decorations = "RESIZE" 
+-- Frameless UI
+config.window_decorations = "RESIZE"
 config.window_padding = { left = 12, right = 12, top = 12, bottom = 12 }
 
 -- Transparency & Blur
-config.window_background_opacity = 0.90 
 config.macos_window_background_blur = 30
 config.text_background_opacity = 1.0
-
--- Dim inactive panes (Spotlight Mode)
 config.inactive_pane_hsb = { saturation = 0.6, brightness = 0.4 }
 
 -- =========================================================
@@ -56,10 +95,10 @@ end)
 config.front_end = "WebGpu"
 config.scrollback_lines = 100000
 config.default_cursor_style = 'BlinkingBar'
-config.animation_fps = 120 -- Fixed: Removed duplicate "1"
+config.animation_fps = 120
 config.cursor_blink_rate = 500
 
--- Allow standard Mac keys (Option -> Alt)
+-- Allow standard Mac keys
 config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = true
 
@@ -67,9 +106,9 @@ config.send_composed_key_when_right_alt_is_pressed = true
 -- 4. POWER USER FEATURES
 -- =========================================================
 config.enable_scroll_bar = false
-config.quick_select_alphabet = "arstqwfpzxcvneioluymdhgjbk" -- Restored
+config.quick_select_alphabet = "arstqwfpzxcvneioluymdhgjbk"
 
--- Hyperlinks (Restored Custom Regex)
+-- Hyperlinks
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
 table.insert(config.hyperlink_rules, {
   regex = '[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+\\.[a-zA-Z0-9_.-]+',
@@ -82,57 +121,43 @@ config.mouse_bindings = {
 }
 
 -- =========================================================
--- 5. KEYBINDINGS (iTerm + Power User)
+-- 5. KEYBINDINGS
 -- =========================================================
 config.keys = {
-  -- --- ZSH HANDSHAKE (Crucial for FZF) ---
-  -- Cmd+T: Sends Esc+t -> Triggers FZF File Search in Zsh
-  { key = 't', mods = 'CMD', action = action.SendString '\x1bt' },
-
-  -- --- CLIPBOARD ---
-  -- Cmd+C: Sends Esc+c -> Triggers Smart Copy in Zsh
+  -- --- ZSH INTELLIGENCE ---
+  { key = 't', mods = 'CMD', action = action.SendString '\x1bt' },  -- FZF File
   { key = 'c', mods = 'CMD', action = action.CopyTo 'Clipboard' },
-  -- Cmd+X: Sends Esc+x -> Triggers Smart Cut in Zsh
   { key = 'x', mods = 'CMD', action = action.CopyTo 'Clipboard' },
-  -- Cmd+V: Smart Paste
   { key = 'v', mods = 'CMD', action = action.PasteFrom 'Clipboard' },
 
-  -- --- SPLITS (iTerm Style) ---
+  -- --- SPLITS ---
   { key = 'd', mods = 'CMD', action = action.SplitHorizontal { domain = 'CurrentPaneDomain' } },
   { key = 'd', mods = 'CMD|SHIFT', action = action.SplitVertical { domain = 'CurrentPaneDomain' } },
   { key = 'w', mods = 'CMD', action = action.CloseCurrentPane { confirm = true } },
 
   -- --- NAVIGATION ---
-  -- Cmd+Option+Arrows: Switch Tabs
   { key = 'LeftArrow', mods = 'CMD|OPT', action = action.ActivateTabRelative(-1) },
   { key = 'RightArrow', mods = 'CMD|OPT', action = action.ActivateTabRelative(1) },
-  
-  -- Cmd+Arrows: Pane Navigation
   { key = 'UpArrow',    mods = 'CMD', action = action.ActivatePaneDirection 'Up' },
   { key = 'DownArrow',  mods = 'CMD', action = action.ActivatePaneDirection 'Down' },
   
-  -- --- EDITOR TEXT NAV (Hex Codes for Zsh) ---
-  -- Cmd+Left/Right: Start/End of Line
-  { key = 'LeftArrow', mods = 'CMD', action = action.SendString '\x01' },
-  { key = 'RightArrow', mods = 'CMD', action = action.SendString '\x05' },
-  -- Option+Left/Right: Jump Word
-  { key = 'LeftArrow', mods = 'OPT', action = action.SendString '\x1bb' },
-  { key = 'RightArrow', mods = 'OPT', action = action.SendString '\x1bf' },
-  
-  -- --- EDITOR EXPERIENCE ---
-  -- Cmd+Backspace: Delete Line
-  { key = 'Backspace', mods = 'CMD', action = action.SendString '\x15' },
-  -- Cmd+Z: Undo / Cmd+Shift+Z: Redo
-  { key = 'z', mods = 'CMD', action = action.SendString '\x1f' },
-  { key = 'z', mods = 'CMD|SHIFT', action = action.SendString '\x19' },
+  -- --- EDITOR NAV ---
+  { key = 'LeftArrow', mods = 'CMD', action = action.SendString '\x01' },   -- Home
+  { key = 'RightArrow', mods = 'CMD', action = action.SendString '\x05' },  -- End
+  { key = 'LeftArrow', mods = 'OPT', action = action.SendString '\x1bb' },  -- Back Word
+  { key = 'RightArrow', mods = 'OPT', action = action.SendString '\x1bf' }, -- Fwd Word
+  { key = 'Backspace', mods = 'CMD', action = action.SendString '\x15' },   -- Del Line
 
-  -- Shift+Arrows: Select Text (Sends xterm codes for Zsh visual mode)
+  -- --- EDITING ---
+  { key = 'z', mods = 'CMD', action = action.SendString '\x1f' },        -- Undo
+  { key = 'z', mods = 'CMD|SHIFT', action = action.SendString '\x19' },  -- Redo
+
+  -- --- SELECTION (Visual Mode) ---
   { key = 'LeftArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2D' },
   { key = 'RightArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2C' },
   { key = 'UpArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2A' },
   { key = 'DownArrow', mods = 'SHIFT', action = action.SendString '\x1b[1;2B' },
-
-  -- Cmd+Shift+Arrows: Select Line Start/End
+  
   { key = 'LeftArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9D' },
   { key = 'RightArrow', mods = 'CMD|SHIFT', action = action.SendString '\x1b[1;9C' },
 
@@ -144,21 +169,21 @@ config.keys = {
   { key = '=', mods = 'CMD', action = action.IncreaseFontSize },
   { key = '-', mods = 'CMD', action = action.DecreaseFontSize },
   { key = '0', mods = 'CMD', action = action.ResetFontSize },
-
+  
   -- --- COPY MODE ---
   { key = 'Space', mods = 'CMD|SHIFT', action = action.ActivateCopyMode },
 }
 
 -- =========================================================
--- 6. KEY TABLES (Restored Full Logic)
+-- 6. KEY TABLES
 -- =========================================================
 config.key_tables = {
   copy_mode = {
     { key = 'c', mods = 'CMD', action = action.CopyMode 'Close' },
     { key = 'Escape', mods = 'NONE', action = action.CopyMode 'Close' },
     { key = 'q', mods = 'NONE', action = action.CopyMode 'Close' },
-
-    -- MOVEMENT
+    
+    -- Movement
     { key = 'h', mods = 'NONE', action = action.CopyMode 'MoveLeft' },
     { key = 'j', mods = 'NONE', action = action.CopyMode 'MoveDown' },
     { key = 'k', mods = 'NONE', action = action.CopyMode 'MoveUp' },
@@ -167,16 +192,16 @@ config.key_tables = {
     { key = 'RightArrow', mods = 'NONE', action = action.CopyMode 'MoveRight' },
     { key = 'UpArrow', mods = 'NONE', action = action.CopyMode 'MoveUp' },
     { key = 'DownArrow', mods = 'NONE', action = action.CopyMode 'MoveDown' },
-
-    -- SELECTION
+    
+    -- Selection
     { key = 'v', mods = 'NONE', action = action.CopyMode{ SetSelectionMode =  'Cell' } },
     { key = 'V', mods = 'SHIFT', action = action.CopyMode{ SetSelectionMode = 'Line' } },
     
-    -- WORD JUMP
+    -- Word
     { key = 'LeftArrow', mods = 'SHIFT', action = action.CopyMode 'MoveBackwardWord' },
     { key = 'RightArrow', mods = 'SHIFT', action = action.CopyMode 'MoveForwardWord' },
     
-    -- ACTION
+    -- Action
     { key = 'y', mods = 'NONE', action = action.Multiple{ { CopyTo =  'ClipboardAndPrimarySelection' }, { CopyMode =  'Close' } } },
     { key = 'c', mods = 'CMD', action = action.Multiple{ { CopyTo =  'ClipboardAndPrimarySelection' }, { CopyMode =  'Close' } } },
   },
@@ -193,7 +218,7 @@ config.key_tables = {
 }
 
 -- =========================================================
--- 7. PRIVATE OVERRIDES (Restored)
+-- 7. PRIVATE OVERRIDES
 -- =========================================================
 local function merge_tables(t1, t2)
     for k,v in pairs(t2) do

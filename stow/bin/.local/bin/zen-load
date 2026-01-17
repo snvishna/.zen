@@ -191,8 +191,13 @@ install_homebrew() {
     install_homebrew_core_only
     
     if [[ -f "$BREWFILE" ]]; then
-        brew bundle install --file="$BREWFILE"
-        echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
+    if [[ -f "$BREWFILE" ]]; then
+        # Soften failure: Don't exit script if one cask fails (e.g. permission error)
+        if brew bundle install --file="$BREWFILE"; then
+            echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
+        else
+            echo -e "${YELLOW}[WARN] Brew bundle finished with errors. Continuing...${NC}"
+        fi
         setup_fonts
     else
         echo -e "${YELLOW}[SKIP]${NC} No Brewfile found."
@@ -371,8 +376,19 @@ fix_app_permissions() {
              
              # Run sudo once for all targets
              if [[ ${#targets[@]} -gt 0 ]]; then
-                sudo chown -R "$(whoami)" "${targets[@]}" 2>/dev/null || true
-                echo -e "${GREEN}✔︎ Permissions patched.${NC}"
+                echo "Attempting to fix permissions..."
+                # Try standard chown first
+                if ! sudo chown -R "$(whoami)" "${targets[@]}" 2>/dev/null; then
+                    echo -e "${RED}[ERROR] Failed to claim ownership.${NC}"
+                    if prompt_user "⚠️  Permissions seem locked. Force DELETE these apps so Homebrew can reinstall them clean?"; then
+                        sudo rm -rf "${targets[@]}"
+                        echo -e "${GREEN}✔︎ Apps removed. Run zen-load again or let Homebrew reinstall them.${NC}"
+                    fi
+                else
+                    # Ensure write access
+                    sudo chmod -R u+rwX "${targets[@]}" 2>/dev/null || true
+                    echo -e "${GREEN}✔︎ Permissions patched.${NC}"
+                fi
              fi
         fi
     fi
