@@ -308,7 +308,11 @@ install_dfsync() {
         "$bin_path" config path "$target_config" >/dev/null 2>&1
         
         echo -e "Running dfsync setup..."
-        "$bin_path" setup $dfsync_args
+        if [[ ! -f "$target_config" ]]; then
+            "$bin_path" setup $dfsync_args
+        else
+            echo -e "${GREEN}✔︎ Config found ($target_config). Skipping setup wizard.${NC}"
+        fi
         
         # Check if we have a valid Gist ID now
         local gist_id_check
