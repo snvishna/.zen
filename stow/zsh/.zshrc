@@ -207,6 +207,10 @@ if command -v fzf >/dev/null; then
   if command -v fd >/dev/null; then
     export FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --exclude .git'
     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+    
+    # Custom: fzf-all (Ctrl+T but includes ignored files)
+    # We can't easily bind a second Ctrl+T, but we can give an alias
+    alias fzf-all="FZF_DEFAULT_COMMAND='fd --type f --strip-cwd-prefix --hidden --follow --no-ignore --exclude .git' fzf"
   fi
 fi
 
@@ -327,7 +331,9 @@ alias lt="eza --tree --level=2 --icons -a"
 # --- Search & Preview ---
 alias grep="rg"
 alias ft="rg"                # Search: Find Text
+alias fta="rg -u"            # Search: Find Text (All/Ignored)
 alias ff="fd"                # Search: Find File
+alias ffa="fd -I -H --exclude .git" # Search: Find File (All/Ignored)
 alias cat="bat"              # Read: Syntax highlighted
 alias p="bat --style=plain"  # Read: Plain text
 
