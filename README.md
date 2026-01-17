@@ -87,6 +87,7 @@ Just create these files, and `zen-save` will back them up to your private Gist!
 `zen-load` is not "all-or-nothing". It asks you what you want to install:
 *   📦 **Shell Engine**: Zsh, Starship, Git, Binaries.
 *   💻 **Terminal**: WezTerm (GPU-accelerated, Lua-configured).
+*   🚀 **Neovim**: LazyVim-based Power User setup (Lua, LSP, Treesitter).
 *   📝 **Editor**: VS Code (Settings, Keybindings, Extensions).
 *   🍎 **System**: macOS Defaults, Dock layout, Finder tweaks.
 
@@ -169,6 +170,7 @@ flowchart TD
 | :--- | :--- |
 | **Zen Glass** | Custom WezTerm config with 90% opacity, blur, and "Editor-like" bindings (`Cmd+C/V`). |
 | **Smart Shell** | Zsh + Starship with autosuggestions, `fzf-tab` completion, and localized history. |
+| **Neovim Power** | **LazyVim** foundation with seamless WezTerm navigation (`Ctrl+hjkl`), Obsidian notes, and full LSP. |
 | **Time Travel** | **Atuin** replaces shell history, syncing commands across machines securely. |
 | **Auto-Heal** | `zen-save` automatically snapshots your installed apps (`Brewfile`, `installed_apps.txt`) and macOS defaults. |
 | **Conflict-Free** | Robust conflict resolution moves old config files to `~/.zen/graveyard/` instead of breaking. |

@@ -569,6 +569,16 @@ main() {
         if [[ "$CHECK_MODE" == "false" ]]; then install_vscode_extensions; fi
     fi
 
+    # 4.5 Neovim (Power User)
+    if prompt_user "🚀 Install Neovim (LazyVim)?"; then
+        dfsync_activate "nvim"
+        run_stow_packages "nvim"
+        if ! command -v nvim &> /dev/null && [[ "$CHECK_MODE" == "false" ]]; then
+            echo "Installing Neovim via Brew..."
+            brew install nvim
+        fi
+    fi
+
     # 5. System (macOS Defaults, Launchd, NPM?)
     if prompt_user "🍎 Apply macOS Defaults & System Tweaks?"; then
         dfsync_activate "Raycast|Rectangle|Recents|LaunchAgents|defaults|Brewfile|npm_globals|installed_apps"

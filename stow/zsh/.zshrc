@@ -311,6 +311,9 @@ alias usage="ncdu"        # Disk: Interactive usage analyzer
 alias json="jq"           # Data: Pretty print/query JSON
 
 # --- Meta/Config ---
+export EDITOR="nvim"
+export VISUAL="nvim"
+alias v="nvim"                  # Zen: Neovim (Power User)
 alias dot="code ~/.zshrc"       # Zen: Edit config
 alias src="source ~/.zshrc"     # Zen: Reload config
 alias zbackup="zen-save"        # Zen: Run backup script
