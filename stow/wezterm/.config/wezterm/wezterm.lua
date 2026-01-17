@@ -181,6 +181,13 @@ config.keys = {
   } },
   { key = '[', mods = 'CMD|SHIFT', action = action.SwitchWorkspaceRelative(-1) },
   { key = ']', mods = 'CMD|SHIFT', action = action.SwitchWorkspaceRelative(1) },
+  { key = 'w', mods = 'CMD|OPT', action = wezterm.action_callback(function(window, pane)
+      -- Kill current workspace (and switch to default to avoid zombie state)
+      local current = wezterm.mux.get_active_workspace()
+      if current == 'default' then return end -- Don't kill default
+      wezterm.mux.set_active_workspace('default')
+      wezterm.mux.kill_workspace(current)
+  end) },
 
   -- --- COPY MODE ---
   { key = 'Space', mods = 'CMD|SHIFT', action = action.ActivateCopyMode },
