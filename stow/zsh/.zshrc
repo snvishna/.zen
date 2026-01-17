@@ -28,6 +28,7 @@ setopt AUTO_CD              # cd by typing directory name
 setopt CORRECT              # Auto-correct typos
 setopt EXTENDED_GLOB        # Enable advanced globbing (needed for zmv)
 setopt NO_BEEP              # Silence error beeps
+setopt NO_NOMATCH           # Pass unmatched globs to command (fixes 'ffa *.lua')
 
 # Completion Settings
 # We let Zim handle compinit, but redirect dump file to keep ~ clean
