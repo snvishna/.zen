@@ -14,8 +14,13 @@ echo "🚀 Starting macOS configuration (Extreme Mode)..."
 echo "🛜  Optimizing Network (Ethernet > Wi-Fi)..."
 
 # Prioritize Ethernet over Wi-Fi
-sudo networksetup -ordernetworkservices "Ethernet" "Wi-Fi" "Thunderbolt Bridge" 2>/dev/null
-echo "   -> Network Service Order updated."
+# Prioritize Ethernet over Wi-Fi
+if [[ "$HAS_SUDO" != "false" ]]; then
+    sudo networksetup -ordernetworkservices "Ethernet" "Wi-Fi" "Thunderbolt Bridge" 2>/dev/null
+    echo "   -> Network Service Order updated."
+else
+    echo "   -> [SKIP] Network priority requires sudo."
+fi
 
 # ==============================================================================
 # 1. INPUT DEVICES (KEYBOARD & TRACKPAD)
@@ -187,18 +192,23 @@ defaults write com.apple.Safari com.apple.Safari.ContentPageGroupIdentifier.WebK
 # ==============================================================================
 echo "🔒  Hardening Guest User settings..."
 
-GUEST_STATUS=$(defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled 2>/dev/null)
-if [ "$GUEST_STATUS" -ne 1 ]; then
-    echo "   -> Enabling Guest User..."
-    sudo sysadminctl -guestAccount on
-fi
-sudo defaults write /Library/Preferences/com.apple.AppleFileServer guestAccess -bool false
-sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server AllowGuestAccess -bool false
+if [[ "$HAS_SUDO" != "false" ]]; then
+    GUEST_STATUS=$(defaults read /Library/Preferences/com.apple.loginwindow GuestEnabled 2>/dev/null)
+    if [ "$GUEST_STATUS" -ne 1 ]; then
+        echo "   -> Enabling Guest User..."
+        sudo sysadminctl -guestAccount on
+    fi
+    sudo defaults write /Library/Preferences/com.apple.AppleFileServer guestAccess -bool false
+    sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server AllowGuestAccess -bool false
 
-# Display and Login Security
-sudo pmset -a displaysleep 20
-# Login: Show "Name & Password" fields instead of "List of Users" (10:43)
-sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+    # Display and Login Security
+    sudo pmset -a displaysleep 20
+    # Login: Show "Name & Password" fields instead of "List of Users" (10:43)
+    sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWFULLNAME -bool true
+else
+    echo "   -> [SKIP] Guest User & Login settings require sudo."
+    echo "   -> [SKIP] Power settings (pmset) require sudo."
+fi
 
 # ==============================================================================
 # 4.1 MENU BAR CUSTOMIZATION

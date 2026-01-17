@@ -230,8 +230,12 @@ setup_fonts() {
         
         if [[ "$found_new" == "true" ]]; then
             echo "Refreshing font cache..."
-            atsutil server -shutdown 2>/dev/null || true
-            atsutil server -ping 2>/dev/null || true
+            if [[ "$HAS_SUDO" != "false" ]]; then
+                atsutil server -shutdown 2>/dev/null || true
+                atsutil server -ping 2>/dev/null || true
+            else
+                echo -e "${YELLOW}[SKIP] Font cache refresh skipped (needs sudo). Restart to see fonts.${NC}"
+            fi
         else
             echo -e "${GREEN}✔︎ Fonts already up to date.${NC}"
         fi
@@ -332,11 +336,24 @@ install_dfsync() {
 install_npm_globals() {
     echo -e "\n--- 🟢 Installing NPM Globals ---"
     if command -v npm &> /dev/null && [[ -f "$NPM_LIST" ]]; then
-        # Check if list is empty?
-        grep -vE '^\s*#|^\s*$' "$NPM_LIST" | while read -r pkg; do
-            # Use depth=0 for speed and focus on top-level
-            npm list -g --depth=0 "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg")
-        done
+        # Check if we can write to global prefix
+        local npm_prefix=$(npm config get prefix)
+        local can_write_npm=true
+        
+        if [[ ! -w "$npm_prefix" ]]; then
+            if [[ "$HAS_SUDO" == "false" ]]; then
+                echo -e "${YELLOW}[WARN] Global NPM prefix ($npm_prefix) is not writable and we have no sudo.${NC}"
+                echo -e "       Skipping NPM globals."
+                can_write_npm=false
+            fi
+        fi
+
+        if [[ "$can_write_npm" == "true" ]]; then
+            grep -vE '^\s*#|^\s*$' "$NPM_LIST" | while read -r pkg; do
+                # Use depth=0 for speed and focus on top-level
+                npm list -g --depth=0 "$pkg" &> /dev/null || (echo "Installing $pkg..." && npm install -g "$pkg" || echo -e "${RED}[FAIL] Install failed for $pkg${NC}")
+            done
+        fi
     fi
 }
 
