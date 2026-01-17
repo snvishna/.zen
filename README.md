@@ -172,6 +172,7 @@ flowchart TD
 | **Time Travel** | **Atuin** replaces shell history, syncing commands across machines securely. |
 | **Auto-Heal** | `zen-save` automatically snapshots your installed apps (`Brewfile`, `installed_apps.txt`) and macOS defaults. |
 | **Conflict-Free** | Robust conflict resolution moves old config files to `~/.zen/graveyard/` instead of breaking. |
+| **Limited Mode** | Automatically detects non-root environments and gracefully skips privileged tasks (like permission fixes). |
 | **Rolling Release** | `zen-load` always fetches the latest stable `dfsync` binary to ensure compatibility. |
 
 ---

@@ -177,6 +177,13 @@ run_stow_packages() {
 # --- 2. Installers ---
 install_homebrew_core_only() {
     if ! command -v brew &> /dev/null; then
+        if [[ "$HAS_SUDO" == "false" ]]; then
+            echo -e "${RED}[FAIL] Homebrew missing.${NC}"
+            echo "       Standard installation requires admin rights."
+            echo "       If you have a custom install, ensure 'brew' is in your PATH."
+            return
+        fi
+
         echo "Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         eval "$(/opt/homebrew/bin/brew shellenv 2>/dev/null || /usr/local/bin/brew shellenv)"
@@ -376,6 +383,11 @@ fix_app_permissions() {
     done
     
     if [[ "$found_issues" == "true" ]]; then
+        if [[ "$HAS_SUDO" == "false" ]]; then
+             echo -e "${YELLOW}[SKIP] Cannot fix permissions without sudo.${NC}"
+             return
+        fi
+
         if prompt_user "🔧 Fix permissions for conflicting Apps (WezTerm/Kiro)?"; then
              echo "Claiming ownership of protected apps..."
              # Construct command dynamically
@@ -484,10 +496,19 @@ main() {
     done
 
     echo "--- 🚀 Zen Load (Interactive) ---"
+    # Sudo Safety Check
     if [[ "$CHECK_MODE" == "false" ]]; then
-        echo -e "${YELLOW}🔐 Admin privileges required for some tasks.${NC}"
-        sudo -v
-        while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+        echo -e "${YELLOW}🔐 Checking for admin privileges...${NC}"
+        if sudo -v 2>/dev/null; then
+            export HAS_SUDO="true"
+            # Keep-alive
+            while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
+            echo -e "${GREEN}✔︎ Admin access confirmed.${NC}"
+        else
+            export HAS_SUDO="false"
+            echo -e "${RED}[WARN] No admin access. Running in LIMITED MODE.${NC}"
+            echo -e "       Some tasks (permissions, core installs) will be skipped."
+        fi
     else
         echo -e "${BLUE}🔍 Check Mode Enabled (Dry Run)${NC}"
     fi
