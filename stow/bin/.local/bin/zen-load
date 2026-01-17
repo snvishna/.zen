@@ -191,7 +191,7 @@ install_homebrew() {
     install_homebrew_core_only
     
     if [[ -f "$BREWFILE" ]]; then
-    if [[ -f "$BREWFILE" ]]; then
+
         # Soften failure: Don't exit script if one cask fails (e.g. permission error)
         if brew bundle install --file="$BREWFILE"; then
             echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
@@ -232,6 +232,16 @@ setup_fonts() {
         echo -e "${YELLOW}[WARN]${NC} No Homebrew fonts found at $font_source"
     fi
 }
+
+setup_atuin_history() {
+    if command -v atuin &> /dev/null; then
+        if prompt_user "📜 Import legacy shell history to Atuin?"; then
+            echo "Importing history..."
+            atuin import auto || echo -e "${YELLOW}[WARN] History import failed.${NC}"
+        fi
+    fi
+}
+
 
 
 install_dfsync() {
@@ -507,6 +517,7 @@ main() {
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
         run_stow_packages "zsh" "starship" "git" "bin"
+        if [[ "$CHECK_MODE" == "false" ]]; then setup_atuin_history; fi
     fi
 
     # 4. Editor (VS Code)
