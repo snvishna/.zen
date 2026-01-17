@@ -516,7 +516,7 @@ main() {
     # 2. Shell Configuration (zsh, starship, git, bin)
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
-        run_stow_packages "zsh" "starship" "git" "bin"
+        run_stow_packages "zsh" "starship" "git" "bin" "atuin"
         if [[ "$CHECK_MODE" == "false" ]]; then setup_atuin_history; fi
     fi
 
