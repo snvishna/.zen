@@ -141,12 +141,35 @@ flowchart TD
 
 ---
 
+## ⚡ Cheatsheet
+
+### 🐚 Shell Upgrades
+| Key / Command | Action |
+| :--- | :--- |
+| **Up Arrow** | **Atuin** Magical History Search (Sync & Full-text) |
+| `Cmd + R` | **Atuin** History Search |
+| `Ctrl + T` | **FZF** File Search |
+| `ffa` | **Find File All** (includes gitignored files) |
+| `fta` | **Find Text All** (includes gitignored text) |
+| `fzf-all` | Run FZF including all ignored files |
+
+### 🖥️ WezTerm Workspaces
+| Shortcut | Action |
+| :--- | :--- |
+| `Cmd + S` | **Switch Workspace** (Launcher) |
+| `Cmd + Shift + N` | **New Workspace** (Prompt Name) |
+| `Cmd + Opt + W` | **Kill Current Workspace** (Safety: Switches to default first) |
+| `Cmd + Shift + [` / `]` | Cycle Workspaces |
+
+---
+
 ## 🔥 Features Under the Hood
 
 | Feature | Description |
 | :--- | :--- |
 | **Zen Glass** | Custom WezTerm config with 90% opacity, blur, and "Editor-like" bindings (`Cmd+C/V`). |
 | **Smart Shell** | Zsh + Starship with autosuggestions, `fzf-tab` completion, and localized history. |
+| **Time Travel** | **Atuin** replaces shell history, syncing commands across machines securely. |
 | **Auto-Heal** | `zen-save` automatically snapshots your installed apps (`Brewfile`, `installed_apps.txt`) and macOS defaults. |
 | **Conflict-Free** | Robust conflict resolution moves old config files to `~/.zen/graveyard/` instead of breaking. |
 | **Rolling Release** | `zen-load` always fetches the latest stable `dfsync` binary to ensure compatibility. |
