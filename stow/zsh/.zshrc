@@ -229,36 +229,11 @@ bindkey -r '\ec'
 bindkey -r '^[c'
 bindkey '^[t' fzf-file-widget
 
-# --- SMART NAVIGATION (Multi-line Support) ---
-# Function: Up Arrow
-# Logic: If multi-line text, move cursor up. If at top (or single line), search history.
-function smart-up-arrow() {
-    if [[ $BUFFER == *$'\n'* ]]; then
-        local original_cursor=$CURSOR
-        zle up-line
-        [[ $CURSOR -eq $original_cursor ]] && zle fzf-history-widget
-    else
-        zle fzf-history-widget
-    fi
-}
-zle -N smart-up-arrow
+# --- ATUIN (Magical History) ---
+eval "$(atuin init zsh)"
 
-# Function: Down Arrow
-# Logic: If multi-line text, move cursor down. If at bottom, go to next history item.
-function smart-down-arrow() {
-    if [[ $BUFFER == *$'\n'* ]]; then
-        local original_cursor=$CURSOR
-        zle down-line
-        [[ $CURSOR -eq $original_cursor ]] && zle down-line-or-history
-    else
-        zle down-line-or-history
-    fi
-}
-zle -N smart-down-arrow
-
-# Bind the Smart Widgets
-bindkey '^[[A' smart-up-arrow
-bindkey '^[[B' smart-down-arrow
+# Note: Atuin automatically handles Up/Down arrows and Ctrl+R.
+# We trust it completely.
 
 # Helpers
 function r-delregion() {
