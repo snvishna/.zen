@@ -15,6 +15,10 @@ config.font = wezterm.font_with_fallback {
 config.font_size = 16.0
 config.line_height = 1.05 -- Optimized for readability
 
+config.colors = {
+  background = '#1A1A1A'
+}
+
 -- FRAMELESS UI: Removes the native Mac title bar (iTerm style)
 config.window_decorations = "RESIZE" 
 config.window_padding = { left = 12, right = 12, top = 12, bottom = 12 }
@@ -25,7 +29,7 @@ config.macos_window_background_blur = 30
 config.text_background_opacity = 1.0
 
 -- Dim inactive panes (Spotlight Mode)
-config.inactive_pane_hsb = { saturation = 0.8, brightness = 0.6 }
+config.inactive_pane_hsb = { saturation = 0.6, brightness = 0.4 }
 
 -- =========================================================
 -- 2. TABS & STATUS BAR

@@ -350,12 +350,14 @@ alias g="git"
 alias gs="git status"
 alias ga="git add ."
 alias gc="git commit -m"
+alias gpr="git stash && git pull --rebase && git stash pop"
 alias gp="git push"
 alias gl="git log --oneline --graph --decorate"
 alias gd="git diff"
 alias gundo="git reset --soft HEAD~1"
 alias gwip="git add -A; git rm \$(git ls-files --deleted) 2> /dev/null; git commit --no-verify -m '--wip--'"
 alias gnah="git reset --hard && git clean -df"
+alias gitstat='git shortlog -ens'
 
 # --- System & Maintenance ---
 alias reload="exec zsh"
@@ -399,7 +401,75 @@ chpwd_functions+=(zstats)
 # Private Overrides (API keys, etc.)
 [[ -f "${HOME}/.zshrc.local" ]] && source "${HOME}/.zshrc.local"
 
-# 9. STARTUP
+# 9. PDF Utils
+# ------------------------------------------------------------------------------
+# Compress PDF
+# Usage: compresspdf input.pdf output.pdf [screen|ebook|printer|prepress|default]
+compresspdf() {
+  # 1. Dependency Check: Ensure Ghostscript is installed
+  if ! command -v gs &> /dev/null; then
+    echo "❌ Error: Ghostscript (gs) is not installed."
+    echo "   Install it via brew: brew install ghostscript"
+    return 1
+  fi
+
+  # 2. Argument Validation: Check for help flag or missing arguments
+  if [[ $# -lt 2 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
+    echo "Usage: compresspdf <input_file> <output_file> [quality]"
+    echo ""
+    echo "Quality options:"
+    echo "  screen   (72 dpi)  - Lowest quality, smallest size"
+    echo "  ebook    (150 dpi) - Medium quality"
+    echo "  printer  (300 dpi) - High quality (Default)"
+    echo "  prepress (300 dpi) - Highest quality, color preserving"
+    return 1
+  fi
+
+  local input_file="$1"
+  local output_file="$2"
+  local quality="${3:-printer}" # Default to 'printer' if not provided
+
+  # 3. File Validation: Ensure input file exists
+  if [[ ! -f "$input_file" ]]; then
+    echo "❌ Error: Input file '$input_file' not found."
+    return 1
+  fi
+
+  # 4. Quality Setting Validation: Prevent typo errors in GS settings
+  case "$quality" in
+    screen|ebook|printer|prepress|default) ;;
+    *)
+      echo "⚠️  Warning: Invalid quality '$quality'. Reverting to 'printer'."
+      quality="printer"
+      ;;
+  esac
+
+  echo "compresspdf: Processing '$input_file'..."
+  echo "             Setting: /${quality}"
+
+  # 5. Execution: Run Ghostscript
+  gs -sDEVICE=pdfwrite \
+     -dNOPAUSE \
+     -dQUIET \
+     -dBATCH \
+     -dPDFSETTINGS="/${quality}" \
+     -dCompatibilityLevel=1.4 \
+     -sOutputFile="$output_file" \
+     "$input_file"
+
+  # 6. Result Check & Stats: Show if it worked and the size difference
+  if [[ $? -eq 0 ]]; then
+    local old_size=$(du -h "$input_file" | cut -f1)
+    local new_size=$(du -h "$output_file" | cut -f1)
+    echo "✅ Done. Saved to '$output_file'"
+    echo "   Size: $old_size ➜ $new_size"
+  else
+    echo "❌ Error: Ghostscript failed to compress the file."
+    return 1
+  fi
+}
+
+# 10. STARTUP
 # ------------------------------------------------------------------------------
 # Auto-run zinfo only if we are in WezTerm (prevents clutter in VS Code)
 if [[ "$TERM_PROGRAM" == "WezTerm" ]]; then
