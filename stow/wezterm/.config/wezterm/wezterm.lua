@@ -170,6 +170,18 @@ config.keys = {
   { key = '-', mods = 'CMD', action = action.DecreaseFontSize },
   { key = '0', mods = 'CMD', action = action.ResetFontSize },
   
+  -- --- WORKSPACES (Multiplexing) ---
+  { key = 's', mods = 'CMD', action = action.ShowLauncherArgs { flags = 'FUZZY|WORKSPACES' } },
+  { key = 'n', mods = 'CMD|SHIFT', action = action.SwitchToWorkspace }, -- Prompts for new name
+  { key = 'r', mods = 'CMD|SHIFT', action = action.PromptInputLine {
+      description = 'Enter new workspace name:',
+      action = wezterm.action_callback(function(window, pane, line)
+          if line then wezterm.mux.rename_workspace(wezterm.mux.get_active_workspace(), line) end
+      end),
+  } },
+  { key = '[', mods = 'CMD|SHIFT', action = action.SwitchWorkspaceRelative(-1) },
+  { key = ']', mods = 'CMD|SHIFT', action = action.SwitchWorkspaceRelative(1) },
+
   -- --- COPY MODE ---
   { key = 'Space', mods = 'CMD|SHIFT', action = action.ActivateCopyMode },
 }
