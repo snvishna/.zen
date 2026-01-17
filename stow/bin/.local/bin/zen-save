@@ -57,21 +57,12 @@ dump_brew() {
 dump_npm() {
     if command -v npm &> /dev/null; then
         echo -e "🟢 Dumping NPM Globals..."
-        # Force plain text list of package names
         if command -v jq &> /dev/null; then
-            # -r extracts raw strings. keys[] gives keys.
-            npm list -g --depth=0 --json | jq -r '.dependencies | keys[]' > "$NPM_LIST"
+            # Safe dump: Handle empty JSON, null dependencies, or errors
+            npm list -g --depth=0 --json 2>/dev/null | jq -r 'if .dependencies then .dependencies | keys[] else empty end' > "$NPM_LIST" || true
         else
             npm list -g --depth=0 | grep -v '├──' | grep -v '└──' | awk '{print $2}' | cut -d@ -f1 > "$NPM_LIST"
         fi
-        
-        # Validation: Verify it's a valid list (no JSON artifacts)
-        if grep -q "{" "$NPM_LIST"; then
-            echo -e "${YELLOW}[WARN] Invalid NPM list detected. Cleaning...${NC}"
-            # Fallback to grep method if jq failed to give clean list
-             npm list -g --depth=0 | grep -v '├──' | grep -v '└──' | awk '{print $2}' | cut -d@ -f1 > "$NPM_LIST"
-        fi
-        
         echo -e "${GREEN}✔︎ NPM list updated.${NC}"
     fi
 }
@@ -102,36 +93,24 @@ dump_defaults() {
     echo -e "${GREEN}✔︎ Defaults exported to ${private_macos}/macos_full_dump.txt${NC}"
 }
 
-# --- Constants ---
-# Private Config Mapping (Format: "directory_name:plist_filename")
-PRIVATE_CONFIGS=(
-    "raycast:com.raycast.macos.plist"
-    "rectangle:com.knollsoft.Rectangle.plist"
-    "ice:com.jordanbaird.Ice.plist"
-    "stats:eu.exelban.Stats.plist"
-)
-
-# ... (rest of constants)
-
 dump_private_configs() {
     echo -e "🔒 Snapshotting Private Configs..."
     local private_root="${MANIFESTS}/private"
     
-    # Update dfsync binary in repo first
+    # 1. Create Directories in manifests/private
+    mkdir -p "${private_root}/raycast"
+    mkdir -p "${private_root}/rectangle"
+    mkdir -p "${private_root}/finder"
+    mkdir -p "${private_root}/launchd"
+    
+    # 2. Raycast (Preferences only)
+    cp "${HOME}/Library/Preferences/com.raycast.macos.plist" "${private_root}/raycast/" 2>/dev/null || true
+    
+    # 3. Rectangle (Preferences only)
+    cp "${HOME}/Library/Preferences/com.knollsoft.Rectangle.plist" "${private_root}/rectangle/" 2>/dev/null || true
+
+    # 4. Update dfsync binary in repo
     cp "${HOME}/.local/bin/dfsync" "${STOW_DIR}/bin/.local/bin/dfsync" 2>/dev/null || true
-
-    for config in "${PRIVATE_CONFIGS[@]}"; do
-        local dir_name="${config%%:*}"
-        local plist_name="${config##*:}"
-        local target_dir="${private_root}/${dir_name}"
-        local source_file="${HOME}/Library/Preferences/${plist_name}"
-
-        if [[ -f "$source_file" ]]; then
-            mkdir -p "$target_dir"
-            cp "$source_file" "$target_dir/" 2>/dev/null || true
-            # echo "  - Backed up $dir_name" # Optional verbose
-        fi
-    done
 
     echo -e "${GREEN}✔︎ Private configs and binary snapshotted.${NC}"
 }

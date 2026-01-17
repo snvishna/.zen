@@ -12,6 +12,7 @@
 # ------------------------------------------------------------------------------
 # Export Paths
 export PATH="$HOME/.local/bin:$PATH"
+export XDG_CONFIG_HOME="$HOME/.config"
 
 # Zsh Options (The Foundation)
 HISTFILE="${HOME}/.zsh_history"
@@ -66,25 +67,40 @@ ha() {
     local alias_files=(~/.zshrc)
     local parsed_aliases=$(awk '
         /^[ \t]*#/ { sub(/^[ \t]*#[ \t]*/, ""); doc = $0; next }
+        
         /^[ \t]*alias/ {
-            if ($0 ~ /#/) { print $0 } 
-            else if (doc != "") { print $0 "   ## " doc } 
+            if ($0 ~ /#/) { print $0 }
+            else if (doc != "") { print $0 "   ## " doc }
             else { print $0 }
             doc = ""; next
         }
+
+        /^[ \t]*[a-zA-Z0-9_-]+\(\)[ \t]*\{/ {
+            if (doc != "") { print $0 "   ## " doc }
+            else { print $0 }
+            doc = ""; next
+        }
+
+        /^[ \t]*function[ \t]+[a-zA-Z0-9_-]+/ {
+            if (doc != "") { print $0 "   ## " doc }
+            else { print $0 }
+            doc = ""; next
+        }
+
         { doc = "" }
     ' "${alias_files[@]}")
 
     local selected=$(echo "$parsed_aliases" | \
-        fzf --height 40% --layout=reverse --border --prompt="🔍 Search Aliases > " \
+        fzf --height 40% --layout=reverse --border --prompt="🔍 Search > " \
             --query="$1" \
             --with-nth=1.. \
             --preview "echo {} | bat --color=always --language=zsh --style=plain" \
             --preview-window=down:3:wrap)
 
     if [[ -n "$selected" ]]; then
-        local alias_name=$(echo "$selected" | cut -d'=' -f1 | sed 's/^[ \t]*alias //')
-        print -z "$alias_name "
+        # Extract name: Remove comments, strip prefix (alias/function), strip suffix (=, (), {)
+        local item_name=$(echo "$selected" | sed 's/[[:space:]]*##.*//' | sed -E 's/^[[:space:]]*alias //; s/^[[:space:]]*function //; s/\(\).*//; s/=.*//; s/\{.*//' | tr -d ' ' | tr -d '\t')
+        print -z "$item_name "
     fi
 }
 
