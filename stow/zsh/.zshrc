@@ -336,8 +336,10 @@ alias lt="eza --tree --level=2 --icons -a"
 alias grep="rg"
 alias ft="rg"                # Search: Find Text
 alias fta="rg -u"            # Search: Find Text (All/Ignored)
-alias ff="fd"                # Search: Find File
-alias ffa="fd -I -H --exclude .git" # Search: Find File (All/Ignored)
+alias ff="fd"                # Search: Find File (Regex)
+alias ffa="fd -I -H --exclude .git" # Search: Find File (Regex, All/Ignored)
+alias fg="fd --glob"         # Search: Find File (Glob/Wildcard)
+alias fga="fd --glob -I -H --exclude .git" # Search: Find File (Glob, All/Ignored)
 alias cat="bat"              # Read: Syntax highlighted
 alias p="bat --style=plain"  # Read: Plain text
 
