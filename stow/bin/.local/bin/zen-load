@@ -294,6 +294,26 @@ EOF
     fi
 }
 
+notify_shell_backup() {
+    # Find most recent backup created during this session
+    local backup=$(ls -t ~/.zshrc.pre-zen-*.bak 2>/dev/null | head -1)
+    
+    if [[ -n "$backup" ]]; then
+        echo -e "\n${GREEN}✔︎ Your old .zshrc was backed up${NC}"
+        echo -e "   Location: ${backup}"
+        echo -e "\n${BLUE}💡 Migration Guide:${NC}"
+        echo -e "   • Your custom aliases, exports, and settings are preserved"
+        echo -e "   • Add them to ${GREEN}~/.zshrc.local${NC} to keep them active"
+        echo -e "   • The new .zshrc automatically sources .zshrc.local"
+        echo -e "\n   Example: ${YELLOW}cat ${backup} >> ~/.zshrc.local${NC}"
+        
+        if prompt_user "📝 Open backup in editor to review?"; then
+            ${EDITOR:-vim} "$backup"
+            echo -e "\n${BLUE}Tip:${NC} Copy what you need to ~/.zshrc.local"
+        fi
+    fi
+}
+
 
 
 install_dfsync() {
@@ -601,6 +621,7 @@ main() {
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
         run_stow_packages "zsh" "starship" "git" "bin" "atuin"
         if [[ "$CHECK_MODE" == "false" ]]; then 
+            notify_shell_backup
             setup_atuin_history
             setup_git_identity
         fi
