@@ -204,6 +204,8 @@ install_homebrew() {
             echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
         else
             echo -e "${YELLOW}[WARN] Brew bundle finished with errors. Continuing...${NC}"
+            echo -e "${YELLOW}      Check above output for failed casks${NC}"
+            echo -e "${YELLOW}      You may need to install them manually${NC}"
         fi
         setup_fonts
     else
@@ -379,7 +381,7 @@ install_npm_globals() {
 
 # --- Constants ---
 # Apps that require permission fixes (Format: "AppName.app")
-PROTECTED_APPS=("WezTerm.app" "Kiro CLI.app")
+PROTECTED_APPS=("WezTerm.app" "Kiro CLI.app" "Kiro.app")
 
 # Private Config Mapping (Format: "directory_name:plist_filename")
 PRIVATE_CONFIGS=(
