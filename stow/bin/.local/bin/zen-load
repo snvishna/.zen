@@ -562,6 +562,12 @@ main() {
         if [[ "$CHECK_MODE" == "false" ]]; then setup_atuin_history; fi
     fi
 
+    # 3. Terminal (WezTerm)
+    if prompt_user "💻 Install WezTerm Config?"; then
+        dfsync_activate "wezterm"
+        run_stow_packages "wezterm"
+    fi
+
     # 4. Editor (VS Code)
     if prompt_user "📝 Install VS Code Config & Extensions?"; then
         dfsync_activate "vscode"
