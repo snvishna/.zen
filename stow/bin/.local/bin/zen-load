@@ -253,6 +253,45 @@ setup_atuin_history() {
     fi
 }
 
+setup_git_identity() {
+    local git_local="${HOME}/.gitconfig.local"
+    
+    # Check if local config exists and has user identity
+    if [[ -f "$git_local" ]]; then
+        local has_name=$(grep -E "^\s*name\s*=" "$git_local" 2>/dev/null)
+        local has_email=$(grep -E "^\s*email\s*=" "$git_local" 2>/dev/null)
+        
+        if [[ -n "$has_name" && -n "$has_email" ]]; then
+            echo -e "${GREEN}✔︎ Git identity already configured.${NC}"
+            return
+        fi
+    fi
+    
+    # Warn about template values
+    echo -e "\n${YELLOW}⚠️  Git config is using template values from the repo.${NC}"
+    echo -e "   Current: $(git config user.name) <$(git config user.email)>"
+    
+    if prompt_user "📝 Configure your personal Git identity now?"; then
+        echo ""
+        read -p "Your name: " git_name
+        read -p "Your email: " git_email
+        
+        if [[ -n "$git_name" && -n "$git_email" ]]; then
+            cat > "$git_local" <<EOF
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+            echo -e "${GREEN}✔︎ Git identity configured in ~/.gitconfig.local${NC}"
+            echo -e "   New: $git_name <$git_email>"
+        else
+            echo -e "${YELLOW}[SKIP] No values provided. You can configure later by editing ~/.gitconfig.local${NC}"
+        fi
+    else
+        echo -e "${YELLOW}[SKIP] Remember to create ~/.gitconfig.local with your identity before committing!${NC}"
+    fi
+}
+
 
 
 install_dfsync() {
@@ -559,7 +598,10 @@ main() {
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
         run_stow_packages "zsh" "starship" "git" "bin" "atuin"
-        if [[ "$CHECK_MODE" == "false" ]]; then setup_atuin_history; fi
+        if [[ "$CHECK_MODE" == "false" ]]; then 
+            setup_atuin_history
+            setup_git_identity
+        fi
     fi
 
     # 4. Editor (VS Code)
