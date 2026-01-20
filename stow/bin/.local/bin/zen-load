@@ -204,6 +204,8 @@ install_homebrew() {
             echo -e "${GREEN}✔︎ Brew bundle complete.${NC}"
         else
             echo -e "${YELLOW}[WARN] Brew bundle finished with errors. Continuing...${NC}"
+            echo -e "${YELLOW}      Check above output for failed casks${NC}"
+            echo -e "${YELLOW}      You may need to install them manually${NC}"
         fi
         setup_fonts
     else
@@ -249,6 +251,26 @@ setup_atuin_history() {
         if prompt_user "📜 Import legacy shell history to Atuin?"; then
             echo "Importing history..."
             atuin import auto || echo -e "${YELLOW}[WARN] History import failed.${NC}"
+        fi
+    fi
+}
+
+notify_shell_backup() {
+    # Find most recent backup created during this session
+    local backup=$(ls -t ~/.zshrc.pre-zen-*.bak 2>/dev/null | head -1)
+    
+    if [[ -n "$backup" ]]; then
+        echo -e "\n${GREEN}✔︎ Your old .zshrc was backed up${NC}"
+        echo -e "   Location: ${backup}"
+        echo -e "\n${BLUE}💡 Migration Guide:${NC}"
+        echo -e "   • Your custom aliases, exports, and settings are preserved"
+        echo -e "   • Add them to ${GREEN}~/.zshrc.local${NC} to keep them active"
+        echo -e "   • The new .zshrc automatically sources .zshrc.local"
+        echo -e "\n   Example: ${YELLOW}cat ${backup} >> ~/.zshrc.local${NC}"
+        
+        if prompt_user "📝 Open backup in editor to review?"; then
+            ${EDITOR:-vim} "$backup"
+            echo -e "\n${BLUE}Tip:${NC} Copy what you need to ~/.zshrc.local"
         fi
     fi
 }
@@ -359,7 +381,7 @@ install_npm_globals() {
 
 # --- Constants ---
 # Apps that require permission fixes (Format: "AppName.app")
-PROTECTED_APPS=("WezTerm.app" "Kiro CLI.app")
+PROTECTED_APPS=("WezTerm.app" "Kiro CLI.app" "Kiro.app")
 
 # Private Config Mapping (Format: "directory_name:plist_filename")
 PRIVATE_CONFIGS=(
@@ -559,7 +581,10 @@ main() {
     if prompt_user "📦 Stow Shell Environment (zsh, starship, git, bin)?"; then
         dfsync_activate "zshrc|zprofile|zimrc|starship|gitconfig"
         run_stow_packages "zsh" "starship" "git" "bin" "atuin"
-        if [[ "$CHECK_MODE" == "false" ]]; then setup_atuin_history; fi
+        if [[ "$CHECK_MODE" == "false" ]]; then 
+            notify_shell_backup
+            setup_atuin_history
+        fi
     fi
 
     # 4. Editor (VS Code)
