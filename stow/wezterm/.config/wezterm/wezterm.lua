@@ -97,6 +97,7 @@ config.scrollback_lines = 100000
 config.default_cursor_style = 'BlinkingBar'
 config.animation_fps = 120
 config.cursor_blink_rate = 500
+config.adjust_window_size_when_changing_font_size = false
 
 -- Allow standard Mac keys
 config.send_composed_key_when_left_alt_is_pressed = true
