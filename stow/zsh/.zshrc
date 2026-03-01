@@ -408,68 +408,87 @@ chpwd_functions+=(zstats)
 # ------------------------------------------------------------------------------
 # Compress PDF
 # Usage: compresspdf input.pdf output.pdf [screen|ebook|printer|prepress|default]
-compresspdf() {
-  # 1. Dependency Check: Ensure Ghostscript is installed
-  if ! command -v gs &> /dev/null; then
-    echo "❌ Error: Ghostscript (gs) is not installed."
-    echo "   Install it via brew: brew install ghostscript"
-    return 1
-  fi
+compresspdf () {
+        if ! command -v gs &> /dev/null
+        then
+                echo "❌ Error: Ghostscript (gs) is not installed."
+                echo "   Install it via brew: brew install ghostscript"
+                return 1
+        fi
 
-  # 2. Argument Validation: Check for help flag or missing arguments
-  if [[ $# -lt 2 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]; then
-    echo "Usage: compresspdf <input_file> <output_file> [quality]"
-    echo ""
-    echo "Quality options:"
-    echo "  screen   (72 dpi)  - Lowest quality, smallest size"
-    echo "  ebook    (150 dpi) - Medium quality"
-    echo "  printer  (300 dpi) - High quality (Default)"
-    echo "  prepress (300 dpi) - Highest quality, color preserving"
-    return 1
-  fi
+        if [[ $# -lt 2 ]] || [[ "$1" == "-h" ]] || [[ "$1" == "--help" ]]
+        then
+                echo "Usage: compresspdf <input_file> <output_file> [quality] [color_mode]"
+                echo ""
+                echo "Quality options (Default: printer):"
+                echo "  screen   (72 dpi)  - Lowest quality, smallest size"
+                echo "  ebook    (150 dpi) - Medium quality"
+                echo "  printer  (300 dpi) - High quality"
+                echo "  prepress (300 dpi) - Highest quality, color preserving"
+                echo ""
+                echo "Color mode options (Default: color):"
+                echo "  color - Retain original colors"
+                echo "  gray  - Convert to grayscale (helps reduce file size)"
+                return 1
+        fi
 
-  local input_file="$1"
-  local output_file="$2"
-  local quality="${3:-printer}" # Default to 'printer' if not provided
+        local input_file="$1"
+        local output_file="$2"
+        local quality="${3:-printer}"
+        local color_mode="${4:-color}" # Defaults to color
 
-  # 3. File Validation: Ensure input file exists
-  if [[ ! -f "$input_file" ]]; then
-    echo "❌ Error: Input file '$input_file' not found."
-    return 1
-  fi
+        if [[ ! -f "$input_file" ]]
+        then
+                echo "❌ Error: Input file '$input_file' not found."
+                return 1
+        fi
 
-  # 4. Quality Setting Validation: Prevent typo errors in GS settings
-  case "$quality" in
-    screen|ebook|printer|prepress|default) ;;
-    *)
-      echo "⚠️  Warning: Invalid quality '$quality'. Reverting to 'printer'."
-      quality="printer"
-      ;;
-  esac
+        # Validate quality parameter
+        case "$quality" in
+                (screen | ebook | printer | prepress | default)  ;;
+                (*) echo "⚠️  Warning: Invalid quality '$quality'. Reverting to 'printer'."
+                        quality="printer"  ;;
+        esac
 
-  echo "compresspdf: Processing '$input_file'..."
-  echo "             Setting: /${quality}"
+        # Validate color_mode parameter
+        case "$color_mode" in
+                (color | gray) ;;
+                (*) echo "⚠️  Warning: Invalid color mode '$color_mode'. Reverting to 'color'."
+                        color_mode="color" ;;
+        esac
 
-  # 5. Execution: Run Ghostscript
-  gs -sDEVICE=pdfwrite \
-     -dNOPAUSE \
-     -dQUIET \
-     -dBATCH \
-     -dPDFSETTINGS="/${quality}" \
-     -dCompatibilityLevel=1.4 \
-     -sOutputFile="$output_file" \
-     "$input_file"
+        echo "compresspdf: Processing '$input_file'..."
+        echo "             Quality: /${quality}"
+        echo "             Color:   ${color_mode}"
 
-  # 6. Result Check & Stats: Show if it worked and the size difference
-  if [[ $? -eq 0 ]]; then
-    local old_size=$(du -h "$input_file" | cut -f1)
-    local new_size=$(du -h "$output_file" | cut -f1)
-    echo "✅ Done. Saved to '$output_file'"
-    echo "   Size: $old_size ➜ $new_size"
-  else
-    echo "❌ Error: Ghostscript failed to compress the file."
-    return 1
-  fi
+        # 1. Build the base arguments array
+        local gs_args=(
+            -sDEVICE=pdfwrite
+            -dNOPAUSE
+            -dQUIET
+            -dBATCH
+            -dCompatibilityLevel=1.4
+            -dPDFSETTINGS="/${quality}"
+        )
+
+        # 2. Conditionally append grayscale flags
+        if [[ "$color_mode" == "gray" ]]; then
+            gs_args+=("-sColorConversionStrategy=Gray" "-dProcessColorModel=/DeviceGray")
+        fi
+
+        # 3. Execute Ghostscript with the array
+        command gs "${gs_args[@]}" -sOutputFile="$output_file" "$input_file"
+
+        if [[ $? -eq 0 ]]
+        then
+                local old_size=$(du -h "$input_file" | cut -f1)
+                local new_size=$(du -h "$output_file" | cut -f1)
+                echo "✅ Done. Saved to '$output_file'"
+                echo "   Size: $old_size ➜ $new_size"
+        else
+                echo "❌ Error: Ghostscript failed to compress the file."
+                return 1
+        fi
 }
 
 # 10. STARTUP

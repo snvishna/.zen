@@ -1,2 +1,3 @@
 # NPM Globals List
+corepack
 npm
