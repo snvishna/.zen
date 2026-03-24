@@ -99,8 +99,8 @@ resolve_conflicts() {
         if [[ -d "$pkg_dir" ]]; then
             # Safe array-based find loop to handle all filenames
             local files=()
-            # FIX 2: Also include directories (-type d) to catch conflicting directory symlinks (e.g. .config/wezterm -> old repo)
-            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l -o -type d \) -print0)
+            # Only check files and symlinks, not directories (stow handles directory merging)
+            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l \) -print0)
             
             for file in "${files[@]}"; do
                 # Get relative path
@@ -115,21 +115,20 @@ resolve_conflicts() {
                 if [[ -e "$target" || -L "$target" ]]; then
                     if [[ -L "$target" ]]; then
                         local link_target=$(readlink "$target")
-                        # Check strict stow path match
-                        # We accept it if it points deeper into our specific package
-                        if [[ "$link_target" == *".zen/stow/$pkg/$rel_path"* ]]; then
+                        # Accept if it points anywhere into .zen/stow (any package can share parent dirs)
+                        if [[ "$link_target" == .zen/stow/* ]] || [[ "$link_target" == */.zen/stow/* ]]; then
                             continue
                         fi
                         echo "  - Invalid symlink: $target -> $link_target"
+                        backup_file "$target"
                     else
                         # If it's a real directory, ignore it (Stow will merge)
                         if [[ -d "$target" && ! -L "$target" ]]; then
                            continue
                         fi
                         echo "  - Blocking file: $target"
+                        backup_file "$target"
                     fi
-                    
-                    backup_file "$target"
                 fi
             done
         fi
@@ -523,6 +522,7 @@ install_macos_defaults() {
     local target="${HOME}/Library/LaunchAgents/com.shankar.configbackup.plist"
     
     if [[ -f "$template" ]]; then
+        mkdir -p "${HOME}/Library/LaunchAgents"
         sed "s|{{HOME}}|${HOME}|g" "$template" > "$target"
         
         launchctl unload "$target" 2>/dev/null || true
