@@ -17,6 +17,10 @@ manifests/macos/all_settings_bak.txt
 stow/bin/.local/bin/dfsync
 stow/zim/.zim
 
+# Runtime data — not dotfiles, should never be committed
+stow/bin/.local/share/
+stow/bin/.local/state/
+
 # Note: We purposely DO NOT ignore launchd plists or other configs in stow/
 stow/launchd/Library/LaunchAgents/com.shankar.configbackup.plist
 config/
