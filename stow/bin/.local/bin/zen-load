@@ -43,8 +43,15 @@ backup_file() {
     local timestamp=$(date +"%Y%m%d_%H%M%S")
     local backup="${target}.pre-zen-${timestamp}.bak"
     
-    echo -e "${YELLOW}[BACKUP]${NC} Moving $target to $backup"
-    mv "$target" "$backup"
+    # Write backup outside the stow tree to avoid stow picking it up on next run
+    local home_backup="${HOME}/.zen-backups/${timestamp}"
+    mkdir -p "$home_backup"
+    local rel="${target#$HOME/}"
+    local dest_dir="$home_backup/$(dirname "$rel")"
+    mkdir -p "$dest_dir"
+    
+    echo -e "${YELLOW}[BACKUP]${NC} Moving $target to $home_backup/$rel"
+    mv "$target" "$home_backup/$rel"
 }
 
 dfsync_activate() {
@@ -100,7 +107,8 @@ resolve_conflicts() {
             # Safe array-based find loop to handle all filenames
             local files=()
             # Only check files and symlinks, not directories (stow handles directory merging)
-            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -type f -o -type l \) -print0)
+            # Exclude .bak files — backups must never be stowed or conflict-checked
+            while IFS= read -r -d '' f; do files+=("$f"); done < <(find "$pkg_dir" \( -name ".git" -prune \) -o \( -name ".DS_Store" -prune \) -o \( -name "*.bak" -prune \) -o \( -type f -o -type l \) -print0)
             
             for file in "${files[@]}"; do
                 # Get relative path
